@@ -1,0 +1,20 @@
+# Local Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform.lock.hcl
+placeholder.zip
+crash.log
+override.tf
+override.tf.json
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Secrets
+*.pem
+*.key

@@ -1,0 +1,8 @@
+aws_region         = "us-east-1"
+environment        = "producao"   # unico ambiente provisionado (001-R1)
+project_name       = "tech-challenge"
+vpc_cidr           = "10.0.0.0/16"
+kubernetes_version = "1.30"
+lambda_s3_bucket   = "tech-challenge-lambda-artifacts-producao"
+
+# jwt_secret e db_secret_arn sao passados via TF_VAR ou secrets do CI/CD (Environment producao)
