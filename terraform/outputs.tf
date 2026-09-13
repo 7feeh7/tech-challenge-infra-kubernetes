@@ -42,3 +42,28 @@ output "kubeconfig_command" {
   description = "Comando para configurar kubectl."
   value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.eks.cluster_name}"
 }
+
+output "api_gateway_url" {
+  description = "URL base HTTPS do API Gateway (entrada publica unica)."
+  value       = aws_apigatewayv2_api.main.api_endpoint
+}
+
+output "api_gateway_auth_url" {
+  description = "URL publica de autenticacao por CPF."
+  value       = "${aws_apigatewayv2_api.main.api_endpoint}/auth/cpf"
+}
+
+output "api_gateway_id" {
+  description = "ID do HTTP API Gateway."
+  value       = aws_apigatewayv2_api.main.id
+}
+
+output "vpc_link_id" {
+  description = "ID do VPC Link para integracao com o EKS."
+  value       = aws_apigatewayv2_vpc_link.eks.id
+}
+
+output "eks_nlb_dns_name" {
+  description = "DNS do NLB interno (somente in-VPC)."
+  value       = aws_lb.eks_internal.dns_name
+}

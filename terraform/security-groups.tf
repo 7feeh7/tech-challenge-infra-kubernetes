@@ -68,3 +68,13 @@ resource "aws_security_group_rule" "eks_nodes_app_ingress" {
   security_group_id = module.eks.node_security_group_id
   description       = "Allow in-VPC traffic to API pods"
 }
+
+resource "aws_security_group_rule" "eks_nodes_nodeport_ingress" {
+  type              = "ingress"
+  from_port         = 30080
+  to_port           = 30080
+  protocol          = "tcp"
+  cidr_blocks       = [var.vpc_cidr]
+  security_group_id = module.eks.node_security_group_id
+  description       = "Allow NLB health checks and traffic via NodePort"
+}

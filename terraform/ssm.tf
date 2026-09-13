@@ -64,6 +64,24 @@ resource "aws_ssm_parameter" "api_gateway_url" {
   value = aws_apigatewayv2_api.main.api_endpoint
 }
 
+resource "aws_ssm_parameter" "api_gateway_auth_url" {
+  name  = "${local.ssm_prefix}/infra/api_gateway_auth_url"
+  type  = "String"
+  value = "${aws_apigatewayv2_api.main.api_endpoint}/auth/cpf"
+}
+
+resource "aws_ssm_parameter" "vpc_link_id" {
+  name  = "${local.ssm_prefix}/infra/vpc_link_id"
+  type  = "String"
+  value = aws_apigatewayv2_vpc_link.eks.id
+}
+
+resource "aws_ssm_parameter" "eks_nlb_dns_name" {
+  name  = "${local.ssm_prefix}/infra/eks_nlb_dns_name"
+  type  = "String"
+  value = aws_lb.eks_internal.dns_name
+}
+
 resource "aws_ssm_parameter" "lambda_artifacts_bucket" {
   name  = "${local.ssm_prefix}/infra/lambda_artifacts_bucket"
   type  = "String"

@@ -132,3 +132,20 @@ variable "api_throttling_rate" {
   type        = number
   default     = 50
 }
+
+variable "api_integration_timeout_ms" {
+  description = "Timeout das integracoes HTTP/Lambda no API Gateway (max 30000)."
+  type        = number
+  default     = 29000
+
+  validation {
+    condition     = var.api_integration_timeout_ms >= 50 && var.api_integration_timeout_ms <= 30000
+    error_message = "api_integration_timeout_ms deve estar entre 50 e 30000."
+  }
+}
+
+variable "api_log_retention_days" {
+  description = "Retencao dos access logs JSON do API Gateway."
+  type        = number
+  default     = 14
+}

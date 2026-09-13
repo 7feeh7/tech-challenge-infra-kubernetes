@@ -59,6 +59,10 @@ Prefixo: `/tech-challenge/producao/infra/`
 | `ecr_repository_url` | tech-challenge CI |
 | `lambda_auth_function_name` | serverless CI, infra-database |
 | `lambda_artifacts_bucket` | serverless CI |
+| `api_gateway_url` | tech-challenge CI, documentação |
+| `api_gateway_auth_url` | consumidores externos, Swagger |
+| `vpc_link_id` | observabilidade / troubleshooting |
+| `eks_nlb_dns_name` | healthcheck NLB (in-VPC) |
 
 Detalhes em [`docs/contratos-cross-repo.md`](docs/contratos-cross-repo.md).
 
