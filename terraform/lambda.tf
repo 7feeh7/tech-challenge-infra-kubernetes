@@ -22,12 +22,15 @@ resource "aws_lambda_function" "auth_cpf" {
 
   environment {
     variables = {
-      DB_SECRET_ARN  = var.db_secret_arn
-      JWT_SECRET_ARN = var.jwt_secret_arn
-      JWT_SECRET     = var.jwt_secret_arn == "" ? var.jwt_secret : ""
-      JWT_ISSUER     = var.jwt_issuer
-      JWT_AUDIENCE   = var.jwt_audience
-      NODE_ENV       = var.environment
+      DB_SECRET_ARN           = var.db_secret_arn
+      JWT_SECRET_ARN          = aws_secretsmanager_secret.jwt.arn
+      JWT_ISSUER              = var.jwt_issuer
+      JWT_AUDIENCE            = var.jwt_audience
+      AUTH_RATE_LIMIT_TABLE   = aws_dynamodb_table.auth_cpf_rate_limit.name
+      AUTH_CPF_MAX_ATTEMPTS   = tostring(var.auth_cpf_max_attempts)
+      AUTH_CPF_WINDOW_SECONDS = tostring(var.auth_cpf_window_seconds)
+      AUTH_RESPONSE_TARGET_MS = tostring(var.auth_response_target_ms)
+      NODE_ENV                = var.environment
     }
   }
 

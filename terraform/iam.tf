@@ -118,10 +118,10 @@ resource "aws_iam_role_policy" "lambda_secrets" {
           "secretsmanager:GetSecretValue",
           "secretsmanager:DescribeSecret"
         ]
-        Resource = compact(concat(
-          var.db_secret_arn != "" ? [var.db_secret_arn] : ["arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:${var.project_name}/*"],
-          var.jwt_secret_arn != "" ? [var.jwt_secret_arn] : [],
-        ))
+        Resource = compact([
+          var.db_secret_arn != "" ? var.db_secret_arn : "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:${var.project_name}/*",
+          aws_secretsmanager_secret.jwt.arn,
+        ])
       }
     ]
   })

@@ -120,6 +120,12 @@ resource "aws_apigatewayv2_stage" "default" {
     throttling_rate_limit  = var.api_throttling_rate
   }
 
+  route_settings {
+    route_key              = "POST /auth/cpf"
+    throttling_burst_limit = var.auth_route_throttling_burst
+    throttling_rate_limit  = var.auth_route_throttling_rate
+  }
+
   tags = {
     Name = "${var.project_name}-${var.environment}-api-default-stage"
   }

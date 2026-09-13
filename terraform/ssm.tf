@@ -88,6 +88,42 @@ resource "aws_ssm_parameter" "sendgrid_secret_arn" {
   value = aws_secretsmanager_secret.sendgrid_api_key.arn
 }
 
+resource "aws_ssm_parameter" "jwt_secret_arn" {
+  name  = "${local.ssm_prefix}/infra/jwt_secret_arn"
+  type  = "String"
+  value = aws_secretsmanager_secret.jwt.arn
+}
+
+resource "aws_ssm_parameter" "github_role_app_arn" {
+  name  = "${local.ssm_prefix}/infra/github_role_app_arn"
+  type  = "String"
+  value = aws_iam_role.github["app"].arn
+}
+
+resource "aws_ssm_parameter" "github_role_serverless_arn" {
+  name  = "${local.ssm_prefix}/infra/github_role_serverless_arn"
+  type  = "String"
+  value = aws_iam_role.github["serverless"].arn
+}
+
+resource "aws_ssm_parameter" "github_role_infra_kubernetes_arn" {
+  name  = "${local.ssm_prefix}/infra/github_role_infra_kubernetes_arn"
+  type  = "String"
+  value = aws_iam_role.github["infra_kubernetes"].arn
+}
+
+resource "aws_ssm_parameter" "github_role_infra_database_arn" {
+  name  = "${local.ssm_prefix}/infra/github_role_infra_database_arn"
+  type  = "String"
+  value = aws_iam_role.github["infra_database"].arn
+}
+
+resource "aws_ssm_parameter" "auth_rate_limit_table" {
+  name  = "${local.ssm_prefix}/infra/auth_rate_limit_table"
+  type  = "String"
+  value = aws_dynamodb_table.auth_cpf_rate_limit.name
+}
+
 resource "aws_ssm_parameter" "api_notificacao_irsa_role_arn" {
   name  = "${local.ssm_prefix}/infra/api_notificacao_irsa_role_arn"
   type  = "String"

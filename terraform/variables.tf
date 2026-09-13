@@ -217,3 +217,69 @@ variable "datadog_alert_recipients" {
   type        = string
   default     = "@all"
 }
+
+variable "auth_route_throttling_burst" {
+  description = "Burst limit especifico de POST /auth/cpf no API Gateway."
+  type        = number
+  default     = 10
+}
+
+variable "auth_route_throttling_rate" {
+  description = "Rate limit (req/s) especifico de POST /auth/cpf no API Gateway."
+  type        = number
+  default     = 5
+}
+
+variable "auth_cpf_max_attempts" {
+  description = "Tentativas maximas por CPF na janela configurada (DynamoDB)."
+  type        = number
+  default     = 5
+}
+
+variable "auth_cpf_window_seconds" {
+  description = "Janela em segundos do rate limit por CPF."
+  type        = number
+  default     = 300
+}
+
+variable "auth_response_target_ms" {
+  description = "Tempo minimo uniforme de resposta da auth-cpf (anti timing attack)."
+  type        = number
+  default     = 300
+}
+
+variable "auth_failure_alarm_threshold" {
+  description = "Limite de falhas de auth em 5 min para alarme CloudWatch."
+  type        = number
+  default     = 50
+}
+
+variable "github_org" {
+  description = "Organizacao GitHub dos quatro repositorios."
+  type        = string
+  default     = "7feeh7"
+}
+
+variable "github_repo_app" {
+  description = "Repositorio da aplicacao NestJS."
+  type        = string
+  default     = "tech-challenge-oficina"
+}
+
+variable "github_repo_serverless" {
+  description = "Repositorio das Functions."
+  type        = string
+  default     = "tech-challenge-serverless"
+}
+
+variable "github_repo_infra_kubernetes" {
+  description = "Repositorio Terraform EKS/Gateway."
+  type        = string
+  default     = "tech-challenge-infra-kubernetes"
+}
+
+variable "github_repo_infra_database" {
+  description = "Repositorio Terraform RDS."
+  type        = string
+  default     = "tech-challenge-infra-database"
+}
