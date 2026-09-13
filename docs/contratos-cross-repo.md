@@ -72,4 +72,4 @@ Chaves de homologacao nao sao usadas. Se existirem no bucket, remova com `terraf
 
 ## Desvio R-12
 
-Automacao existe em `develop` (validacao) e `main` (deploy). Apenas `main` provisiona. Ver [ADR-001](../../../tech-challenge/docs/adr/001-ambiente-unico-provisionado.md).
+Automacao existe em `develop` (validacao) e `main` (deploy). Apenas `main` provisiona. Ver [ADR-001](../../../tech-challenge/docs/adrs/001-ambiente-unico-provisionado.md).

@@ -2,6 +2,19 @@
 
 Infraestrutura de computacao e borda da oficina mecanica: VPC, EKS, ECR, Functions (shell), bucket de artefatos e parametros SSM para integracao cross-repo.
 
+## Arquitetura (este repositório)
+
+```mermaid
+flowchart TB
+    VPC[VPC + NAT] --> EKS[EKS + HPA]
+    VPC --> GW[API Gateway]
+    GW --> EKS
+    GW --> LAM[Lambda shell]
+    SNS[SNS] --> SQS[SQS + DLQ]
+```
+
+Visão completa: [`tech-challenge/docs/diagramas/componentes-nuvem.md`](../tech-challenge/docs/diagramas/componentes-nuvem.md) · Diagrama infra: [`diagrama-infra-kubernetes.md`](../tech-challenge/docs/diagramas/diagrama-infra-kubernetes.md) · Documentação central: [`tech-challenge/docs/`](../tech-challenge/docs/README.md)
+
 ## Responsabilidade
 
 | Recurso | Descricao |
