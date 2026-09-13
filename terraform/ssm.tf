@@ -58,6 +58,42 @@ resource "aws_ssm_parameter" "lambda_notificacao_function_name" {
   value = aws_lambda_function.notificacao.function_name
 }
 
+resource "aws_ssm_parameter" "lambda_notificacao_function_arn" {
+  name  = "${local.ssm_prefix}/infra/lambda_notificacao_function_arn"
+  type  = "String"
+  value = aws_lambda_function.notificacao.arn
+}
+
+resource "aws_ssm_parameter" "sns_notificacao_topic_arn" {
+  name  = "${local.ssm_prefix}/infra/sns_notificacao_topic_arn"
+  type  = "String"
+  value = aws_sns_topic.notificacao_status.arn
+}
+
+resource "aws_ssm_parameter" "sqs_notificacao_queue_url" {
+  name  = "${local.ssm_prefix}/infra/sqs_notificacao_queue_url"
+  type  = "String"
+  value = aws_sqs_queue.notificacao_status.url
+}
+
+resource "aws_ssm_parameter" "sqs_notificacao_dlq_url" {
+  name  = "${local.ssm_prefix}/infra/sqs_notificacao_dlq_url"
+  type  = "String"
+  value = aws_sqs_queue.notificacao_status_dlq.url
+}
+
+resource "aws_ssm_parameter" "sendgrid_secret_arn" {
+  name  = "${local.ssm_prefix}/infra/sendgrid_secret_arn"
+  type  = "String"
+  value = aws_secretsmanager_secret.sendgrid_api_key.arn
+}
+
+resource "aws_ssm_parameter" "api_notificacao_irsa_role_arn" {
+  name  = "${local.ssm_prefix}/infra/api_notificacao_irsa_role_arn"
+  type  = "String"
+  value = aws_iam_role.api_notificacao_irsa.arn
+}
+
 resource "aws_ssm_parameter" "api_gateway_url" {
   name  = "${local.ssm_prefix}/infra/api_gateway_url"
   type  = "String"

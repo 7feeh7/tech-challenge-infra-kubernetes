@@ -149,3 +149,45 @@ variable "api_log_retention_days" {
   type        = number
   default     = 14
 }
+
+variable "sendgrid_api_key" {
+  description = "Chave da API SendGrid consumida pela Lambda de notificacao."
+  type        = string
+  sensitive   = true
+}
+
+variable "sendgrid_from_email" {
+  description = "Remetente verificado no SendGrid."
+  type        = string
+  default     = "oficina@seu-dominio.com"
+}
+
+variable "lambda_notificacao_reserved_concurrency" {
+  description = "Reserved concurrency da Lambda de notificacao."
+  type        = number
+  default     = 5
+}
+
+variable "sqs_notificacao_batch_size" {
+  description = "Tamanho do lote SQS consumido pela Lambda de notificacao."
+  type        = number
+  default     = 10
+}
+
+variable "sqs_notificacao_max_receive_count" {
+  description = "Tentativas antes de redirecionar mensagem para DLQ."
+  type        = number
+  default     = 5
+}
+
+variable "alarm_sqs_age_seconds" {
+  description = "Limite de idade da mensagem mais antiga na fila de notificacao."
+  type        = number
+  default     = 300
+}
+
+variable "alarm_sqs_backlog_count" {
+  description = "Limite de mensagens visiveis na fila de notificacao."
+  type        = number
+  default     = 100
+}

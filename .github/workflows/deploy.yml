@@ -60,6 +60,7 @@ jobs:
             -var="jwt_secret=${{ secrets.JWT_SECRET }}" \
             -var="db_secret_arn=${{ secrets.DB_SECRET_ARN }}" \
             -var="lambda_s3_bucket=${{ secrets.LAMBDA_ARTIFACTS_BUCKET }}" \
+            -var="sendgrid_api_key=${{ secrets.SENDGRID_API_KEY }}" \
             -out=tfplan
         working-directory: terraform
 
@@ -75,7 +76,8 @@ jobs:
             -var="environment=${{ env.TF_ENVIRONMENT }}" \
             -var="jwt_secret=${{ secrets.JWT_SECRET }}" \
             -var="db_secret_arn=${{ secrets.DB_SECRET_ARN }}" \
-            -var="lambda_s3_bucket=${{ secrets.LAMBDA_ARTIFACTS_BUCKET }}"
+            -var="lambda_s3_bucket=${{ secrets.LAMBDA_ARTIFACTS_BUCKET }}" \
+            -var="sendgrid_api_key=${{ secrets.SENDGRID_API_KEY }}"
         working-directory: terraform
 
       - name: Smoke test — SSM exports

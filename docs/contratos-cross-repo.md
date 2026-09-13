@@ -37,7 +37,13 @@ Prefixo: `/tech-challenge/producao/infra/`
 | `eks_cluster_name` | tech-challenge CI |
 | `ecr_repository_url` | tech-challenge CI |
 | `lambda_auth_function_name` | serverless CI, infra-database |
+| `lambda_notificacao_function_name` | serverless CI |
 | `lambda_artifacts_bucket` | serverless CI |
+| `sns_notificacao_topic_arn` | tech-challenge CI |
+| `api_notificacao_irsa_role_arn` | tech-challenge CI |
+| `sendgrid_secret_arn` | troubleshooting |
+| `sqs_notificacao_queue_url` | troubleshooting |
+| `sqs_notificacao_dlq_url` | troubleshooting DLQ |
 
 ## Exports — infra-database
 

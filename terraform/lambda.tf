@@ -48,20 +48,23 @@ resource "aws_cloudwatch_log_group" "lambda_auth" {
 }
 
 resource "aws_lambda_function" "notificacao" {
-  function_name = "${var.project_name}-${var.environment}-notificacao"
-  description   = "Notificacao de status de OS por e-mail"
-  role          = aws_iam_role.lambda_execution.arn
-  handler       = "handler.handler"
-  runtime       = "nodejs20.x"
-  timeout       = var.lambda_timeout
-  memory_size   = var.lambda_memory_size
+  function_name                  = "${var.project_name}-${var.environment}-notificacao"
+  description                    = "Notificacao de status de OS por e-mail"
+  role                           = aws_iam_role.lambda_notificacao_execution.arn
+  handler                        = "handler.handler"
+  runtime                        = "nodejs20.x"
+  timeout                        = var.lambda_timeout
+  memory_size                    = var.lambda_memory_size
+  reserved_concurrent_executions = var.lambda_notificacao_reserved_concurrency
 
   s3_bucket = var.lambda_s3_bucket
   s3_key    = "lambda-notificacao/placeholder.zip"
 
   environment {
     variables = {
-      NODE_ENV = var.environment
+      NODE_ENV            = var.environment
+      SENDGRID_SECRET_ARN = aws_secretsmanager_secret.sendgrid_api_key.arn
+      SENDGRID_FROM_EMAIL = var.sendgrid_from_email
     }
   }
 
@@ -70,10 +73,20 @@ resource "aws_lambda_function" "notificacao" {
   }
 
   depends_on = [
-    aws_iam_role_policy_attachment.lambda_basic,
-    aws_iam_role_policy_attachment.lambda_xray,
-    aws_cloudwatch_log_group.lambda_notificacao
+    aws_iam_role_policy_attachment.lambda_notificacao_basic,
+    aws_iam_role_policy_attachment.lambda_notificacao_xray,
+    aws_cloudwatch_log_group.lambda_notificacao,
+    aws_s3_object.lambda_notificacao_placeholder
   ]
+}
+
+resource "aws_lambda_event_source_mapping" "notificacao_sqs" {
+  event_source_arn = aws_sqs_queue.notificacao_status.arn
+  function_name    = aws_lambda_function.notificacao.arn
+  batch_size       = var.sqs_notificacao_batch_size
+  enabled          = true
+
+  function_response_types = ["ReportBatchItemFailures"]
 }
 
 #tfsec:ignore:aws-cloudwatch-log-group-customer-key

@@ -59,3 +59,14 @@ resource "aws_s3_object" "lambda_placeholder" {
     ignore_changes = [source, etag]
   }
 }
+
+resource "aws_s3_object" "lambda_notificacao_placeholder" {
+  bucket = aws_s3_bucket.lambda_artifacts.id
+  key    = "lambda-notificacao/placeholder.zip"
+  source = data.archive_file.lambda_placeholder.output_path
+  etag   = data.archive_file.lambda_placeholder.output_md5
+
+  lifecycle {
+    ignore_changes = [source, etag]
+  }
+}
