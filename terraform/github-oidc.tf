@@ -147,6 +147,8 @@ resource "aws_iam_role_policy_attachment" "github_infra_database" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonRDSFullAccess"
 }
 
+# Role OIDC de CI para Terraform do repo infra-database (PowerUser + SSM/Secrets).
+#tfsec:ignore:aws-iam-no-policy-wildcards
 resource "aws_iam_role_policy" "github_infra_database_ssm" {
   name = "${var.project_name}-${var.environment}-github-infra-db-ssm"
   role = aws_iam_role.github["infra_database"].id

@@ -36,6 +36,9 @@ resource "aws_iam_role" "cluster_autoscaler_irsa" {
   assume_role_policy = data.aws_iam_policy_document.cluster_autoscaler_assume_role.json
 }
 
+# Policy oficial do Cluster Autoscaler AWS: wildcards em describe e scale com
+# condicao k8s.io/cluster-autoscaler/* no segundo statement.
+#tfsec:ignore:aws-iam-no-policy-wildcards
 data "aws_iam_policy_document" "cluster_autoscaler" {
   statement {
     effect = "Allow"

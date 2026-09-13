@@ -160,8 +160,8 @@ resource "aws_security_group" "nlb" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow all outbound"
+    cidr_blocks = [var.vpc_cidr]
+    description = "Allow outbound within VPC"
   }
 
   tags = {
@@ -241,8 +241,8 @@ resource "aws_security_group" "vpc_link" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow all outbound"
+    cidr_blocks = [var.vpc_cidr]
+    description = "Allow outbound within VPC"
   }
 
   tags = {

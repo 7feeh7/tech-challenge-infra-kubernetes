@@ -1,5 +1,8 @@
+# Criptografia via alias/aws/sns; CMK customizado fora do escopo por custo.
+#tfsec:ignore:aws-sns-topic-encryption-use-cmk
 resource "aws_sns_topic" "notificacao_status" {
-  name = "${var.project_name}-${var.environment}-notificacao-status"
+  name              = "${var.project_name}-${var.environment}-notificacao-status"
+  kms_master_key_id = "alias/aws/sns"
 
   tags = {
     Name = "${var.project_name}-${var.environment}-notificacao-status"
@@ -9,6 +12,7 @@ resource "aws_sns_topic" "notificacao_status" {
 resource "aws_sqs_queue" "notificacao_status_dlq" {
   name                      = "${var.project_name}-${var.environment}-notificacao-status-dlq"
   message_retention_seconds = 1209600
+  sqs_managed_sse_enabled   = true
 
   tags = {
     Name = "${var.project_name}-${var.environment}-notificacao-status-dlq"
@@ -20,6 +24,7 @@ resource "aws_sqs_queue" "notificacao_status" {
   visibility_timeout_seconds = var.lambda_timeout * 6
   message_retention_seconds  = 345600
   receive_wait_time_seconds  = 10
+  sqs_managed_sse_enabled    = true
 
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.notificacao_status_dlq.arn

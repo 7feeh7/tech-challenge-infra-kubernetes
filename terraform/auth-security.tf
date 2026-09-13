@@ -13,6 +13,10 @@ resource "aws_dynamodb_table" "auth_cpf_rate_limit" {
     enabled        = true
   }
 
+  server_side_encryption {
+    enabled = true
+  }
+
   tags = {
     Name = "${var.project_name}-${var.environment}-auth-cpf-rate"
   }
