@@ -11,11 +11,12 @@ resource "aws_security_group" "lambda" {
     description = "PostgreSQL access to RDS"
   }
 
+  # Secrets Manager e demais APIs AWS via NAT Gateway (sem VPC endpoints por custo).
   egress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"] #tfsec:ignore:aws-ec2-no-public-egress-sgr
     description = "HTTPS for AWS services"
   }
 
@@ -49,7 +50,8 @@ resource "aws_security_group" "rds_access" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.vpc_cidr]
+    description = "Responses within VPC only"
   }
 
   tags = {

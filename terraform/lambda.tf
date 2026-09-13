@@ -15,6 +15,10 @@ resource "aws_lambda_function" "auth_cpf" {
     security_group_ids = [aws_security_group.lambda.id]
   }
 
+  tracing_config {
+    mode = "Active"
+  }
+
   environment {
     variables = {
       DB_SECRET_ARN = var.db_secret_arn
@@ -26,11 +30,14 @@ resource "aws_lambda_function" "auth_cpf" {
   depends_on = [
     aws_iam_role_policy_attachment.lambda_vpc,
     aws_iam_role_policy_attachment.lambda_basic,
+    aws_iam_role_policy_attachment.lambda_xray,
     aws_cloudwatch_log_group.lambda_auth,
     aws_s3_object.lambda_placeholder
   ]
 }
 
+# CloudWatch Logs ja criptografa em repouso com chave AWS; CMK nao exigida.
+#tfsec:ignore:aws-cloudwatch-log-group-customer-key
 resource "aws_cloudwatch_log_group" "lambda_auth" {
   name              = "/aws/lambda/${var.project_name}-${var.environment}-auth-cpf"
   retention_in_days = 14
@@ -54,12 +61,18 @@ resource "aws_lambda_function" "notificacao" {
     }
   }
 
+  tracing_config {
+    mode = "Active"
+  }
+
   depends_on = [
     aws_iam_role_policy_attachment.lambda_basic,
+    aws_iam_role_policy_attachment.lambda_xray,
     aws_cloudwatch_log_group.lambda_notificacao
   ]
 }
 
+#tfsec:ignore:aws-cloudwatch-log-group-customer-key
 resource "aws_cloudwatch_log_group" "lambda_notificacao" {
   name              = "/aws/lambda/${var.project_name}-${var.environment}-notificacao"
   retention_in_days = 14

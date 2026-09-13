@@ -1,3 +1,7 @@
+# MUTABLE: CI do tech-challenge publica tag "latest" a cada deploy; manifests
+# aplicados usam sempre {git_sha}. Criptografia AES-256 gerenciada pela AWS.
+#tfsec:ignore:aws-ecr-enforce-immutable-repository
+#tfsec:ignore:aws-ecr-repository-customer-key
 resource "aws_ecr_repository" "api" {
   name                 = "${var.project_name}-${var.environment}"
   image_tag_mutability = "MUTABLE"

@@ -1,3 +1,9 @@
+# Endpoint publico: CI do repo tech-challenge roda kubectl a partir de runners
+# GitHub-hosted (IPs dinamicos). Acesso continua exigindo IAM + RBAC do EKS.
+# Egress dos nodes: pull de imagens e chamadas AWS via NAT Gateway.
+#tfsec:ignore:aws-eks-no-public-cluster-access
+#tfsec:ignore:aws-eks-no-public-cluster-access-to-cidr
+#tfsec:ignore:aws-ec2-no-public-egress-sgr
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.8"
@@ -6,6 +12,8 @@ module "eks" {
   cluster_version = var.kubernetes_version
 
   cluster_endpoint_public_access = true
+
+  cluster_enabled_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets

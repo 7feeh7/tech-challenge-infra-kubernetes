@@ -6,6 +6,8 @@ locals {
   azs = slice(data.aws_availability_zones.available.names, 0, 2)
 }
 
+# Flow Logs desligado por custo (ingestao CloudWatch) em ambiente academico.
+#tfsec:ignore:aws-ec2-require-vpc-flow-logs-for-all-vpcs
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 5.8"
