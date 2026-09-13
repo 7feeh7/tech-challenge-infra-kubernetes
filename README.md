@@ -1,6 +1,27 @@
 # tech-challenge-infra-kubernetes
 
-Infraestrutura de computacao e borda da oficina mecanica: VPC, EKS, ECR, Functions (shell), bucket de artefatos e parametros SSM para integracao cross-repo.
+Infraestrutura de computação e borda da oficina mecânica: VPC, EKS, ECR, API Gateway, Functions (shell), mensageria, observabilidade Datadog e parâmetros SSM para integração cross-repo.
+
+## Propósito e limites
+
+| Dentro deste repo | Fora deste repo |
+| --- | --- |
+| Terraform de rede, cluster, borda, filas, dashboards Datadog | Código das Lambdas → `tech-challenge-serverless` |
+| Exports SSM `/tech-challenge/producao/infra/*` | RDS → `tech-challenge-infra-database` |
+| CI/CD Terraform (validate/plan/apply) | Manifests K8s da app → `tech-challenge-oficina` |
+
+## Tecnologias
+
+| Tecnologia | Versão |
+| --- | --- |
+| Terraform | >= 1.5 |
+| AWS (VPC, EKS, ECR, API GW, Lambda shell, SNS/SQS) | região us-east-1 |
+| Datadog provider | dashboards + monitors |
+| GitHub Actions | pr-validation + deploy |
+
+## Dockerfile
+
+**Não aplicável.** Repositório somente Terraform — imagens Docker são buildadas no repo `tech-challenge-oficina` e publicadas no ECR provisionado aqui.
 
 ## Arquitetura (este repositório)
 
@@ -13,7 +34,7 @@ flowchart TB
     SNS[SNS] --> SQS[SQS + DLQ]
 ```
 
-Visão completa: [`tech-challenge/docs/diagramas/componentes-nuvem.md`](../tech-challenge/docs/diagramas/componentes-nuvem.md) · Diagrama infra: [`diagrama-infra-kubernetes.md`](../tech-challenge/docs/diagramas/diagrama-infra-kubernetes.md) · Documentação central: [`tech-challenge/docs/`](../tech-challenge/docs/README.md)
+Visão completa: [componentes-nuvem](https://github.com/7feeh7/tech-challenge-oficina/blob/main/docs/diagramas/componentes-nuvem.md) · [diagrama-infra-kubernetes](https://github.com/7feeh7/tech-challenge-oficina/blob/main/docs/diagramas/diagrama-infra-kubernetes.md) · Docs centrais: [docs/](https://github.com/7feeh7/tech-challenge-oficina/tree/main/docs)
 
 ## Responsabilidade
 
@@ -26,20 +47,34 @@ Visão completa: [`tech-challenge/docs/diagramas/componentes-nuvem.md`](../tech-
 | S3 | Artefatos ZIP das Functions |
 | SSM | Exports consumidos pelos demais repositorios |
 
-## Relacao com outros repositorios
+## Repositórios relacionados
 
-| Repositorio | Integracao |
-| --- | --- |
-| `tech-challenge-infra-database` | Le VPC/subnets/SG via SSM; publica credenciais do RDS |
-| `tech-challenge-serverless` | Faz upload de ZIP no S3 e atualiza codigo das Functions |
-| `tech-challenge` | Le ECR/EKS via SSM no deploy; aplica manifests `k8s/` |
+| Repositório | URL | Integração |
+| --- | --- | --- |
+| **tech-challenge-infra-kubernetes** (este) | https://github.com/7feeh7/tech-challenge-infra-kubernetes | Provisiona VPC, EKS, Gateway, SSM |
+| tech-challenge-infra-database | https://github.com/7feeh7/tech-challenge-infra-database | Consome SSM infra; publica SSM database |
+| tech-challenge-serverless | https://github.com/7feeh7/tech-challenge-serverless | Upload ZIP + update Lambda |
+| tech-challenge-oficina | https://github.com/7feeh7/tech-challenge-oficina | Deploy EKS; Swagger em `/docs` |
 
 ## Ordem de provisionamento
 
-1. **tech-challenge-serverless** — build inicial (opcional antes do k8s)
-2. **tech-challenge-infra-kubernetes** (este repo)
-3. **tech-challenge-infra-database**
-4. **tech-challenge** — deploy da aplicacao
+1. **tech-challenge-infra-kubernetes** (este repo) — **1º**
+2. **tech-challenge-infra-database** — 2º
+3. **tech-challenge-serverless** — 3º
+4. **tech-challenge-oficina** — 4º
+
+## Swagger / OpenAPI
+
+**Não aplicável.** Documentação de API: [openapi.json](https://github.com/7feeh7/tech-challenge-oficina/blob/main/docs/openapi.json) · runtime `{api_gateway_url}/docs` (SSM `api_gateway_url`).
+
+## Deploy ativo
+
+| Output / SSM | Uso |
+| --- | --- |
+| `api_gateway_url` | URL pública da solução |
+| `eks_cluster_name` | kubectl / CI da aplicação |
+| `ecr_repository_url` | Push de imagem Docker |
+| `datadog_dashboard_*_url` | Dashboards (outputs Terraform) |
 
 ## Estrutura
 
