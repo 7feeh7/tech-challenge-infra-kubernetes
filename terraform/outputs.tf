@@ -67,3 +67,24 @@ output "eks_nlb_dns_name" {
   description = "DNS do NLB interno (somente in-VPC)."
   value       = aws_lb.eks_internal.dns_name
 }
+
+output "datadog_dashboard_tecnico_url" {
+  description = "URL do dashboard tecnico Datadog."
+  value = length(datadog_dashboard.tecnico) > 0 ? nonsensitive(
+    "https://app.${var.datadog_site}/dashboard/${datadog_dashboard.tecnico[0].id}"
+  ) : null
+}
+
+output "datadog_dashboard_negocio_url" {
+  description = "URL do dashboard de negocio Datadog."
+  value = length(datadog_dashboard.negocio) > 0 ? nonsensitive(
+    "https://app.${var.datadog_site}/dashboard/${datadog_dashboard.negocio[0].id}"
+  ) : null
+}
+
+output "datadog_dashboard_integracoes_url" {
+  description = "URL do dashboard de integracoes Datadog."
+  value = length(datadog_dashboard.integracoes) > 0 ? nonsensitive(
+    "https://app.${var.datadog_site}/dashboard/${datadog_dashboard.integracoes[0].id}"
+  ) : null
+}

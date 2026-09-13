@@ -191,3 +191,29 @@ variable "alarm_sqs_backlog_count" {
   type        = number
   default     = 100
 }
+
+variable "datadog_api_key" {
+  description = "Datadog API Key para coleta de logs, metricas e APM."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "datadog_app_key" {
+  description = "Datadog Application Key para dashboards, monitores e synthetic tests."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "datadog_site" {
+  description = "Site Datadog (datadoghq.com ou datadoghq.eu)."
+  type        = string
+  default     = "datadoghq.com"
+}
+
+variable "datadog_alert_recipients" {
+  description = "Destinatarios dos alertas Datadog (ex.: @slack-canal ou @email)."
+  type        = string
+  default     = "@all"
+}
