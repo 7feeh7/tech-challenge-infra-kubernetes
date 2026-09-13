@@ -7,7 +7,7 @@ Infraestrutura de computacao e borda da oficina mecanica: VPC, EKS, ECR, Functio
 | Recurso | Descricao |
 | --- | --- |
 | VPC + subnets | Rede privada/publica para EKS, Lambda e RDS |
-| EKS + metrics-server | Cluster Kubernetes da API NestJS |
+| EKS + metrics-server + Cluster Autoscaler | Cluster Kubernetes da API NestJS com escala de nodes |
 | ECR | Registro de imagens Docker da aplicacao |
 | Lambda (shell) | Functions provisionadas; codigo vem de `tech-challenge-serverless` |
 | S3 | Artefatos ZIP das Functions |
@@ -94,6 +94,10 @@ State S3 key: `tech-challenge-infra-kubernetes/producao/terraform.tfstate`
 1. Reverta o commit no GitHub e faca merge na branch alvo.
 2. O workflow `deploy.yml` aplicara o state anterior via Terraform.
 3. Para destroy controlado, use `workflow_dispatch` com action `destroy`.
+
+## Custo e teardown
+
+Estimativa de custos, ordem segura de destruicao e pre-requisitos de backup em [`docs/custo-e-teardown.md`](docs/custo-e-teardown.md).
 
 ## Licenca
 

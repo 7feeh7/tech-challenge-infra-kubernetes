@@ -8,12 +8,17 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.8"
 
-  cluster_name    = "${var.project_name}-${var.environment}-eks"
+  cluster_name    = local.cluster_name
   cluster_version = var.kubernetes_version
 
   cluster_endpoint_public_access = true
 
   cluster_enabled_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+
+  create_kms_key = true
+  cluster_encryption_config = {
+    resources = ["secrets"]
+  }
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
@@ -27,6 +32,8 @@ module "eks" {
       desired_size = var.node_desired_size
       min_size     = var.node_min_size
       max_size     = var.node_max_size
+
+      tags = local.cluster_autoscaler_asg_tags
     }
   }
 }
