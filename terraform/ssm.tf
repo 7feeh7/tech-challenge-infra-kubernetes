@@ -58,6 +58,12 @@ resource "aws_ssm_parameter" "lambda_notificacao_function_name" {
   value = aws_lambda_function.notificacao.function_name
 }
 
+resource "aws_ssm_parameter" "api_gateway_url" {
+  name  = "${local.ssm_prefix}/infra/api_gateway_url"
+  type  = "String"
+  value = aws_apigatewayv2_api.main.api_endpoint
+}
+
 resource "aws_ssm_parameter" "lambda_artifacts_bucket" {
   name  = "${local.ssm_prefix}/infra/lambda_artifacts_bucket"
   type  = "String"

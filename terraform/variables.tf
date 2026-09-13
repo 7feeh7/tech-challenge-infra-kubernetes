@@ -90,3 +90,45 @@ variable "lambda_memory_size" {
   type        = number
   default     = 256
 }
+
+variable "lambda_auth_reserved_concurrency" {
+  description = "Reserved concurrency da auth-cpf, alinhada ao pool de conexoes do RDS."
+  type        = number
+  default     = 10
+}
+
+variable "jwt_secret_arn" {
+  description = "ARN do secret JWT no Secrets Manager (preferencial em producao)."
+  type        = string
+  default     = ""
+}
+
+variable "jwt_issuer" {
+  description = "Issuer dos tokens de cliente."
+  type        = string
+  default     = "tech-challenge-auth"
+}
+
+variable "jwt_audience" {
+  description = "Audience dos tokens de cliente."
+  type        = string
+  default     = "tech-challenge-api"
+}
+
+variable "api_cors_origins" {
+  description = "Origens permitidas no API Gateway."
+  type        = list(string)
+  default     = ["*"]
+}
+
+variable "api_throttling_burst" {
+  description = "Burst limit do stage default do API Gateway."
+  type        = number
+  default     = 100
+}
+
+variable "api_throttling_rate" {
+  description = "Rate limit do stage default do API Gateway."
+  type        = number
+  default     = 50
+}

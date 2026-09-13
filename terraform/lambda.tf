@@ -1,11 +1,12 @@
 resource "aws_lambda_function" "auth_cpf" {
-  function_name = "${var.project_name}-${var.environment}-auth-cpf"
-  description   = "Autenticacao de clientes por CPF"
-  role          = aws_iam_role.lambda_execution.arn
-  handler       = "handler.handler"
-  runtime       = "nodejs20.x"
-  timeout       = var.lambda_timeout
-  memory_size   = var.lambda_memory_size
+  function_name                  = "${var.project_name}-${var.environment}-auth-cpf"
+  description                    = "Autenticacao de clientes por CPF"
+  role                           = aws_iam_role.lambda_execution.arn
+  handler                        = "handler.handler"
+  runtime                        = "nodejs20.x"
+  timeout                        = var.lambda_timeout
+  memory_size                    = var.lambda_memory_size
+  reserved_concurrent_executions = var.lambda_auth_reserved_concurrency
 
   s3_bucket = var.lambda_s3_bucket
   s3_key    = var.lambda_s3_key
@@ -21,9 +22,12 @@ resource "aws_lambda_function" "auth_cpf" {
 
   environment {
     variables = {
-      DB_SECRET_ARN = var.db_secret_arn
-      JWT_SECRET    = var.jwt_secret
-      NODE_ENV      = var.environment
+      DB_SECRET_ARN  = var.db_secret_arn
+      JWT_SECRET_ARN = var.jwt_secret_arn
+      JWT_SECRET     = var.jwt_secret_arn == "" ? var.jwt_secret : ""
+      JWT_ISSUER     = var.jwt_issuer
+      JWT_AUDIENCE   = var.jwt_audience
+      NODE_ENV       = var.environment
     }
   }
 
