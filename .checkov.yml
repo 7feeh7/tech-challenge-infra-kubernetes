@@ -1,0 +1,48 @@
+# Excecoes alinhadas ao ADR de custo / ambiente unico e aos #tfsec:ignore.
+# Checks novos (nao listados) continuam bloqueando a CI.
+skip-check:
+  # CMK / custo — criptografia gerenciada pela AWS e suficiente.
+  - CKV_AWS_158 # log groups sem KMS CMK
+  - CKV_AWS_119 # DynamoDB sem CMK
+  - CKV_AWS_136 # ECR sem KMS
+  - CKV_AWS_145 # S3 sem KMS (AES256 em s3.tf)
+  - CKV_AWS_149 # Secrets Manager sem CMK
+  - CKV_AWS_173 # env vars Lambda sem KMS
+
+  # Retencao / logging extra — custo academico.
+  - CKV_AWS_338 # retencao CloudWatch 1 ano
+  - CKV_AWS_91 # access logs do NLB
+  - CKV_AWS_18 # access logs do S3
+  - CKV2_AWS_61 # lifecycle S3
+  - CKV2_AWS_62 # event notifications S3
+  - CKV_AWS_144 # replicacao cross-region S3
+
+  # Auth na borda / NLB interno.
+  - CKV_AWS_309 # rotas HTTP API publicas; auth na Function e na app
+  - CKV2_AWS_20 # NLB interno e TCP, nao ALB HTTP
+  - CKV_AWS_150 # deletion protection; teardown pos-demo
+
+  # IAM de CI / Cluster Autoscaler (ja ignorado no tfsec).
+  - CKV_AWS_286
+  - CKV_AWS_287
+  - CKV_AWS_288
+  - CKV_AWS_289
+  - CKV_AWS_290
+  - CKV_AWS_355
+  - CKV_AWS_356
+  - CKV2_AWS_40
+
+  # Lambda academica.
+  - CKV_AWS_272 # code signing
+  - CKV_AWS_116 # DLQ na Lambda de auth (notificacao ja tem SQS+DLQ)
+  - CKV_AWS_117 # Lambda notificacao fora de VPC (SNS/SQS/SendGrid)
+
+  # SSM de contrato — IDs/ARNs, nao segredos.
+  - CKV2_AWS_34
+
+  # Alinhados ao Terraform atual.
+  - CKV_AWS_51 # ECR MUTABLE: tag latest + deploy por SHA
+  - CKV_TF_1 # modulos EKS/VPC por versao, sem hash de commit
+  - CKV2_AWS_5 # SGs nlb/rds_access (NLB nao anexa SG; RDS no outro repo)
+  - CKV2_AWS_15 # health check ELB no ASG do node group gerenciado
+  - CKV2_AWS_57 # rotacao automatica; JWT/SendGrid injetados no apply
