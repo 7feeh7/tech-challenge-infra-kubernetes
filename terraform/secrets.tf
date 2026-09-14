@@ -6,6 +6,8 @@ resource "random_id" "jwt_suffix" {
   byte_length = 4
 }
 
+# Secrets Manager usa chave gerenciada AWS por padrao; CMK customizado fora do escopo por custo.
+#tfsec:ignore:aws-ssm-secret-use-customer-key
 resource "aws_secretsmanager_secret" "jwt" {
   name = "${var.project_name}/${var.environment}/jwt-secret-${random_id.jwt_suffix.hex}"
 
@@ -21,6 +23,8 @@ resource "aws_secretsmanager_secret_version" "jwt" {
   })
 }
 
+# Secrets Manager usa chave gerenciada AWS por padrao; CMK customizado fora do escopo por custo.
+#tfsec:ignore:aws-ssm-secret-use-customer-key
 resource "aws_secretsmanager_secret" "sendgrid_api_key" {
   name = "${var.project_name}/${var.environment}/sendgrid-api-key-${random_id.sendgrid_suffix.hex}"
 

@@ -21,6 +21,8 @@ resource "aws_apigatewayv2_api" "main" {
   }
 }
 
+# CloudWatch Logs ja criptografa em repouso com chave AWS; CMK nao exigida.
+#tfsec:ignore:aws-cloudwatch-log-group-customer-key
 resource "aws_cloudwatch_log_group" "api_gateway" {
   name              = "/aws/apigateway/${var.project_name}-${var.environment}-api"
   retention_in_days = var.api_log_retention_days
