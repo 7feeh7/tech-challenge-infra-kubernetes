@@ -4,26 +4,22 @@ Infraestrutura de computação e borda da oficina mecânica: VPC, EKS, ECR, API 
 
 ## Propósito e limites
 
-| Dentro deste repo | Fora deste repo |
-| --- | --- |
+| Dentro deste repo                                            | Fora deste repo                                  |
+| ------------------------------------------------------------ | ------------------------------------------------ |
 | Terraform de rede, cluster, borda, filas, dashboards Datadog | Código das Lambdas → `tech-challenge-serverless` |
-| Exports SSM `/tech-challenge/producao/infra/*` | RDS → `tech-challenge-infra-database` |
-| CI/CD Terraform (validate/plan/apply) | Manifests K8s da app → `tech-challenge-oficina` |
+| Exports SSM `/tech-challenge/producao/infra/*`               | RDS → `tech-challenge-infra-database`            |
+| CI/CD Terraform (validate/plan/apply)                        | Manifests K8s da app → `tech-challenge-oficina`  |
 
 ## Tecnologias
 
-| Tecnologia | Versão |
-| --- | --- |
-| Terraform | >= 1.5 |
-| AWS (VPC, EKS, ECR, API GW, Lambda shell, SNS/SQS) | região us-east-1 |
-| Datadog provider | dashboards + monitors |
-| GitHub Actions | pr-validation + deploy |
+| Tecnologia                                         | Versão                 |
+| -------------------------------------------------- | ---------------------- |
+| Terraform                                          | >= 1.5                 |
+| AWS (VPC, EKS, ECR, API GW, Lambda shell, SNS/SQS) | região us-east-1       |
+| Datadog provider                                   | dashboards + monitors  |
+| GitHub Actions                                     | pr-validation + deploy |
 
-## Dockerfile
-
-**Não aplicável.** Repositório somente Terraform — imagens Docker são buildadas no repo `tech-challenge-oficina` e publicadas no ECR provisionado aqui.
-
-## Arquitetura (este repositório)
+## Arquitetura
 
 ```mermaid
 flowchart TB
@@ -34,27 +30,25 @@ flowchart TB
     SNS[SNS] --> SQS[SQS + DLQ]
 ```
 
-Visão completa: [componentes-nuvem](https://github.com/7feeh7/tech-challenge-oficina/blob/main/docs/diagramas/componentes-nuvem.md) · [diagrama-infra-kubernetes](https://github.com/7feeh7/tech-challenge-oficina/blob/main/docs/diagramas/diagrama-infra-kubernetes.md) · Docs centrais: [docs/](https://github.com/7feeh7/tech-challenge-oficina/tree/main/docs)
-
 ## Responsabilidade
 
-| Recurso | Descricao |
-| --- | --- |
-| VPC + subnets | Rede privada/publica para EKS, Lambda e RDS |
-| EKS + metrics-server + Cluster Autoscaler | Cluster Kubernetes da API NestJS com escala de nodes |
-| ECR | Registro de imagens Docker da aplicacao |
-| Lambda (shell) | Functions provisionadas; codigo vem de `tech-challenge-serverless` |
-| S3 | Artefatos ZIP das Functions |
-| SSM | Exports consumidos pelos demais repositorios |
+| Recurso                                   | Descricao                                                          |
+| ----------------------------------------- | ------------------------------------------------------------------ |
+| VPC + subnets                             | Rede privada/publica para EKS, Lambda e RDS                        |
+| EKS + metrics-server + Cluster Autoscaler | Cluster Kubernetes da API NestJS com escala de nodes               |
+| ECR                                       | Registro de imagens Docker da aplicacao                            |
+| Lambda (shell)                            | Functions provisionadas; codigo vem de `tech-challenge-serverless` |
+| S3                                        | Artefatos ZIP das Functions                                        |
+| SSM                                       | Exports consumidos pelos demais repositorios                       |
 
 ## Repositórios relacionados
 
-| Repositório | URL | Integração |
-| --- | --- | --- |
-| **tech-challenge-infra-kubernetes** (este) | https://github.com/7feeh7/tech-challenge-infra-kubernetes | Provisiona VPC, EKS, Gateway, SSM |
-| tech-challenge-infra-database | https://github.com/7feeh7/tech-challenge-infra-database | Consome SSM infra; publica SSM database |
-| tech-challenge-serverless | https://github.com/7feeh7/tech-challenge-serverless | Upload ZIP + update Lambda |
-| tech-challenge-oficina | https://github.com/7feeh7/tech-challenge-oficina | Deploy EKS; Swagger em `/docs` |
+| Repositório                                | URL                                                       | Integração                              |
+| ------------------------------------------ | --------------------------------------------------------- | --------------------------------------- |
+| **tech-challenge-infra-kubernetes** (este) | https://github.com/7feeh7/tech-challenge-infra-kubernetes | Provisiona VPC, EKS, Gateway, SSM       |
+| tech-challenge-infra-database              | https://github.com/7feeh7/tech-challenge-infra-database   | Consome SSM infra; publica SSM database |
+| tech-challenge-serverless                  | https://github.com/7feeh7/tech-challenge-serverless       | Upload ZIP + update Lambda              |
+| tech-challenge-oficina                     | https://github.com/7feeh7/tech-challenge-oficina          | Deploy EKS; Swagger em `/docs`          |
 
 ## Ordem de provisionamento
 
@@ -63,17 +57,13 @@ Visão completa: [componentes-nuvem](https://github.com/7feeh7/tech-challenge-of
 3. **tech-challenge-serverless** — 3º
 4. **tech-challenge-oficina** — 4º
 
-## Swagger / OpenAPI
-
-**Não aplicável.** Documentação de API: [openapi.json](https://github.com/7feeh7/tech-challenge-oficina/blob/main/docs/openapi.json) · runtime `{api_gateway_url}/docs` (SSM `api_gateway_url`).
-
 ## Deploy ativo
 
-| Output / SSM | Uso |
-| --- | --- |
-| `api_gateway_url` | URL pública da solução |
-| `eks_cluster_name` | kubectl / CI da aplicação |
-| `ecr_repository_url` | Push de imagem Docker |
+| Output / SSM              | Uso                            |
+| ------------------------- | ------------------------------ |
+| `api_gateway_url`         | URL pública da solução         |
+| `eks_cluster_name`        | kubectl / CI da aplicação      |
+| `ecr_repository_url`      | Push de imagem Docker          |
 | `datadog_dashboard_*_url` | Dashboards (outputs Terraform) |
 
 ## Estrutura
@@ -97,43 +87,41 @@ docs/               Contratos e ADR
 
 Prefixo: `/tech-challenge/producao/infra/`
 
-| Parametro | Consumidor |
-| --- | --- |
-| `vpc_id` | infra-database |
-| `private_subnet_ids` | infra-database |
-| `lambda_security_group_id` | infra-database |
-| `rds_access_security_group_id` | infra-database |
-| `eks_cluster_name` | tech-challenge CI |
-| `ecr_repository_url` | tech-challenge CI |
-| `lambda_auth_function_name` | serverless CI, infra-database |
-| `lambda_artifacts_bucket` | serverless CI |
-| `api_gateway_url` | tech-challenge CI, documentação |
-| `api_gateway_auth_url` | consumidores externos, Swagger |
-| `vpc_link_id` | observabilidade / troubleshooting |
-| `eks_nlb_dns_name` | healthcheck NLB (in-VPC) |
-
-Detalhes em [`docs/contratos-cross-repo.md`](docs/contratos-cross-repo.md).
+| Parametro                      | Consumidor                        |
+| ------------------------------ | --------------------------------- |
+| `vpc_id`                       | infra-database                    |
+| `private_subnet_ids`           | infra-database                    |
+| `lambda_security_group_id`     | infra-database                    |
+| `rds_access_security_group_id` | infra-database                    |
+| `eks_cluster_name`             | tech-challenge CI                 |
+| `ecr_repository_url`           | tech-challenge CI                 |
+| `lambda_auth_function_name`    | serverless CI, infra-database     |
+| `lambda_artifacts_bucket`      | serverless CI                     |
+| `api_gateway_url`              | tech-challenge CI, documentação   |
+| `api_gateway_auth_url`         | consumidores externos, Swagger    |
+| `vpc_link_id`                  | observabilidade / troubleshooting |
+| `eks_nlb_dns_name`             | healthcheck NLB (in-VPC)          |
 
 ## GitHub Secrets (Environment `producao`)
 
-| Secret | Uso |
-| --- | --- |
-| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Deploy Terraform |
-| `TF_STATE_BUCKET` | Backend S3 |
-| `TF_STATE_LOCK_TABLE` | Lock DynamoDB |
-| `JWT_SECRET` | Env da Lambda auth |
-| `DB_SECRET_ARN` | Opcional; preenchido apos database |
-| `LAMBDA_ARTIFACTS_BUCKET` | Nome do bucket S3 de artefatos |
+| Secret                                        | Uso                                |
+| --------------------------------------------- | ---------------------------------- |
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Deploy Terraform                   |
+| `TF_STATE_BUCKET`                             | Backend S3                         |
+| `TF_STATE_LOCK_TABLE`                         | Lock DynamoDB                      |
+| `JWT_SECRET`                                  | Env da Lambda auth                 |
+| `DB_SECRET_ARN`                               | Opcional; preenchido apos database |
+| `LAMBDA_ARTIFACTS_BUCKET`                     | Nome do bucket S3 de artefatos     |
 
 `SONAR_TOKEN` e similares ficam no nivel de repositorio, se aplicavel.
 
 ## Branches e pipelines
 
-| Branch | Workflow | Toca AWS |
-| --- | --- | --- |
-| `develop` | `pr-validation.yml` | **nao** |
-| PR → `main` | `pr-validation.yml` | **nao** |
-| `main` | `deploy.yml` | **sim** |
+| Branch      | Workflow            | Toca AWS |
+| ----------- | ------------------- | -------- |
+| `develop`   | `pr-validation.yml` | **nao**  |
+| PR → `main` | `pr-validation.yml` | **nao**  |
+| `main`      | `deploy.yml`        | **sim**  |
 
 State S3 key: `tech-challenge-infra-kubernetes/producao/terraform.tfstate`
 
