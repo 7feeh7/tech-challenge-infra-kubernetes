@@ -165,7 +165,8 @@ resource "datadog_monitor" "high_cpu" {
     ${var.datadog_alert_recipients}
   EOT
 
-  query = "avg(last_5m):avg:kubernetes.cpu.usage.total{kube_deployment:oficina-api,kube_namespace:oficina} / avg:kubernetes.cpu.limits{kube_deployment:oficina-api,kube_namespace:oficina} * 100 > 80"
+  # usage.total e nanocore; limits e core. Sem /1e9 o percentual fica na casa dos milhoes e o alerta dispara em idle.
+  query = "avg(last_5m):(avg:kubernetes.cpu.usage.total{kube_deployment:oficina-api,kube_namespace:oficina} / 1000000000) / avg:kubernetes.cpu.limits{kube_deployment:oficina-api,kube_namespace:oficina} * 100 > 80"
 
   monitor_thresholds {
     critical = 80
