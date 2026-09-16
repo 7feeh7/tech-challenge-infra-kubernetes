@@ -217,6 +217,15 @@ resource "aws_iam_role_policy" "github_infra_database_ssm" {
         ]
         Resource = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.project_name}-terraform-lock"
       },
+      {
+        Effect = "Allow"
+        Action = [
+          "lambda:UpdateFunctionConfiguration",
+          "lambda:GetFunctionConfiguration",
+          "lambda:GetFunction",
+        ]
+        Resource = aws_lambda_function.auth_cpf.arn
+      },
     ]
   })
 }
