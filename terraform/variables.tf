@@ -260,6 +260,12 @@ variable "github_org" {
   default     = "7feeh7"
 }
 
+variable "github_owner_id" {
+  description = "ID numerico do owner GitHub (obrigatorio para repos criados apos 2026-07-15 — subject OIDC imutavel)."
+  type        = string
+  default     = "20801260"
+}
+
 variable "github_repo_app" {
   description = "Repositorio da aplicacao NestJS."
   type        = string

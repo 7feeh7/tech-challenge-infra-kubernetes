@@ -5,22 +5,32 @@ resource "aws_iam_openid_connect_provider" "github" {
 }
 
 locals {
+  # Repos criados apos 2026-07-15 emitem sub OIDC imutavel: repo:OWNER@OWNER_ID/REPO@REPO_ID:...
+  github_oidc_subject_suffixes = [
+    "ref:refs/heads/main",
+    "environment:${var.environment}",
+  ]
+
   github_repos = {
     app = {
-      name = var.github_repo_app
-      role = "${var.project_name}-${var.environment}-github-oficina"
+      name    = var.github_repo_app
+      repo_id = "1233401444"
+      role    = "${var.project_name}-${var.environment}-github-oficina"
     }
     serverless = {
-      name = var.github_repo_serverless
-      role = "${var.project_name}-${var.environment}-github-serverless"
+      name    = var.github_repo_serverless
+      repo_id = "1368447888"
+      role    = "${var.project_name}-${var.environment}-github-serverless"
     }
     infra_kubernetes = {
-      name = var.github_repo_infra_kubernetes
-      role = "${var.project_name}-${var.environment}-github-infra-k8s"
+      name    = var.github_repo_infra_kubernetes
+      repo_id = "1367702489"
+      role    = "${var.project_name}-${var.environment}-github-infra-k8s"
     }
     infra_database = {
-      name = var.github_repo_infra_database
-      role = "${var.project_name}-${var.environment}-github-infra-db"
+      name    = var.github_repo_infra_database
+      repo_id = "1360712493"
+      role    = "${var.project_name}-${var.environment}-github-infra-db"
     }
   }
 }
@@ -32,34 +42,36 @@ resource "aws_iam_role" "github" {
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Federated = aws_iam_openid_connect_provider.github.arn
-        }
-        Action = "sts:AssumeRoleWithWebIdentity"
-        Condition = {
-          StringEquals = {
-            "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-            "token.actions.githubusercontent.com:sub" = "repo:${var.github_org}/${each.value.name}:ref:refs/heads/main"
+    Statement = flatten([
+      for suffix in local.github_oidc_subject_suffixes : [
+        {
+          Effect = "Allow"
+          Principal = {
+            Federated = aws_iam_openid_connect_provider.github.arn
           }
-        }
-      },
-      {
-        Effect = "Allow"
-        Principal = {
-          Federated = aws_iam_openid_connect_provider.github.arn
-        }
-        Action = "sts:AssumeRoleWithWebIdentity"
-        Condition = {
-          StringEquals = {
-            "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-            "token.actions.githubusercontent.com:sub" = "repo:${var.github_org}/${each.value.name}:environment:${var.environment}"
+          Action = "sts:AssumeRoleWithWebIdentity"
+          Condition = {
+            StringEquals = {
+              "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+              "token.actions.githubusercontent.com:sub" = "repo:${var.github_org}/${each.value.name}:${suffix}"
+            }
           }
-        }
-      },
-    ]
+        },
+        {
+          Effect = "Allow"
+          Principal = {
+            Federated = aws_iam_openid_connect_provider.github.arn
+          }
+          Action = "sts:AssumeRoleWithWebIdentity"
+          Condition = {
+            StringEquals = {
+              "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+              "token.actions.githubusercontent.com:sub" = "repo:${var.github_org}@${var.github_owner_id}/${each.value.name}@${each.value.repo_id}:${suffix}"
+            }
+          }
+        },
+      ]
+    ])
   })
 
   tags = {
