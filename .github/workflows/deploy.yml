@@ -24,7 +24,7 @@ env:
   TF_STATE_KEY: tech-challenge-infra-kubernetes/producao/terraform.tfstate
 
 concurrency:
-  group: terraform-${{ env.TF_ENVIRONMENT }}
+  group: terraform-producao
   cancel-in-progress: false
 
 jobs:
