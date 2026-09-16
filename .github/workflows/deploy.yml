@@ -63,6 +63,7 @@ jobs:
       - name: Terraform Plan
         if: github.event_name == 'push' || github.event.inputs.action == 'apply'
         run: |
+          set -o pipefail
           terraform plan -no-color \
             -var="environment=${{ env.TF_ENVIRONMENT }}" \
             -var="jwt_secret=${{ secrets.JWT_SECRET }}" \
@@ -71,7 +72,13 @@ jobs:
             -var="sendgrid_api_key=${{ secrets.SENDGRID_API_KEY }}" \
             -var="datadog_api_key=${{ secrets.DATADOG_API_KEY }}" \
             -var="datadog_app_key=${{ secrets.DATADOG_APP_KEY }}" \
-            -out=tfplan
+            -out=tfplan 2>&1 | tee plan-output.txt
+          PLAN_EXIT=${PIPESTATUS[0]}
+          if [ "$PLAN_EXIT" -ne 0 ]; then
+            echo "--- terraform plan failed (exit ${PLAN_EXIT}) ---"
+            grep -E "^Error:" plan-output.txt || true
+            exit "$PLAN_EXIT"
+          fi
         working-directory: terraform
 
       - name: Upload plan artifact

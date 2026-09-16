@@ -106,9 +106,9 @@ Prefixo: `/tech-challenge/producao/infra/`
 
 | Secret                                        | Uso                                |
 | --------------------------------------------- | ---------------------------------- |
-| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Deploy Terraform                   |
-| `TF_STATE_BUCKET`                             | Backend S3                         |
-| `TF_STATE_LOCK_TABLE`                         | Lock DynamoDB                      |
+| `AWS_DEPLOY_ROLE_ARN`                         | Role OIDC (`github_role_infra_kubernetes_arn` no SSM) |
+| `TF_STATE_BUCKET`                             | Backend S3 (ex.: `tech-challenge-terraform-state-7feeh7`) |
+| `TF_STATE_LOCK_TABLE`                         | **`tech-challenge-terraform-lock`** — sem `-state-` no nome |
 | `JWT_SECRET`                                  | Env da Lambda auth                 |
 | `DB_SECRET_ARN`                               | Opcional; preenchido apos database |
 | `LAMBDA_ARTIFACTS_BUCKET`                     | Nome do bucket S3 de artefatos     |
