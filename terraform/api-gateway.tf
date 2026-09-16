@@ -123,10 +123,15 @@ resource "aws_apigatewayv2_stage" "default" {
   }
 
   route_settings {
-    route_key              = "POST /auth/cpf"
+    route_key              = aws_apigatewayv2_route.auth_cpf.route_key
     throttling_burst_limit = var.auth_route_throttling_burst
     throttling_rate_limit  = var.auth_route_throttling_rate
   }
+
+  depends_on = [
+    aws_apigatewayv2_route.auth_cpf,
+    aws_apigatewayv2_route.auth_cpf_options,
+  ]
 
   tags = {
     Name = "${var.project_name}-${var.environment}-api-default-stage"
