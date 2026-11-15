@@ -1,21 +1,24 @@
 name: Deploy Infrastructure
 
-# terraform apply toca a nuvem — apenas push em main.
+# terraform apply toca a nuvem — apenas push em main (terraform/**).
 # destroy: workflow_dispatch manual exclusivamente.
 on:
   push:
     branches: [main]
     paths:
       - "terraform/**"
-      - ".github/workflows/deploy.yml"
   workflow_dispatch:
     inputs:
       action:
         description: Terraform action
         required: true
-        default: apply
+        default: plan
         type: choice
-        options: [apply, destroy]
+        options: [plan, apply, destroy]
+      confirm_destroy:
+        description: Digite DESTRUIR-tech-challenge-infra-kubernetes para confirmar destroy
+        required: false
+        type: string
 
 env:
   AWS_REGION: us-east-1
@@ -30,6 +33,7 @@ concurrency:
 jobs:
   deploy:
     name: Terraform Apply
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: producao
     permissions:
@@ -37,6 +41,15 @@ jobs:
       contents: read
 
     steps:
+      - name: Validar confirmação de destroy
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
+        run: |
+          if [ "${{ github.event.inputs.confirm_destroy }}" != "DESTRUIR-tech-challenge-infra-kubernetes" ]; then
+            echo "Confirmação de destroy inválida ou ausente."
+            echo "Digite exatamente: DESTRUIR-tech-challenge-infra-kubernetes"
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
 
       - uses: aws-actions/configure-aws-credentials@v4
@@ -61,7 +74,7 @@ jobs:
         working-directory: terraform
 
       - name: Terraform Plan
-        if: github.event_name == 'push' || github.event.inputs.action == 'apply'
+        if: github.event_name == 'push' || github.event.inputs.action == 'apply' || github.event.inputs.action == 'plan'
         run: |
           set -o pipefail
           terraform plan -no-color \
