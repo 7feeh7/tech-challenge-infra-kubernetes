@@ -73,7 +73,7 @@ resource "aws_sns_topic_policy" "notificacao_status" {
       {
         Sid       = "AllowApiPublish"
         Effect    = "Allow"
-        Principal = { AWS = aws_iam_role.api_notificacao_irsa.arn }
+        Principal = { AWS = aws_iam_role.os_service_irsa.arn }
         Action    = "sns:Publish"
         Resource  = aws_sns_topic.notificacao_status.arn
       }
