@@ -97,25 +97,37 @@ resource "aws_ssm_parameter" "jwt_secret_arn" {
 resource "aws_ssm_parameter" "github_role_app_arn" {
   name  = "${local.ssm_prefix}/infra/github_role_app_arn"
   type  = "String"
-  value = aws_iam_role.github["app"].arn
+  value = local.ci_role_arns.app
+}
+
+resource "aws_ssm_parameter" "github_role_billing_arn" {
+  name  = "${local.ssm_prefix}/infra/github_role_billing_arn"
+  type  = "String"
+  value = local.ci_role_arns.billing
+}
+
+resource "aws_ssm_parameter" "github_role_execution_arn" {
+  name  = "${local.ssm_prefix}/infra/github_role_execution_arn"
+  type  = "String"
+  value = local.ci_role_arns.execution
 }
 
 resource "aws_ssm_parameter" "github_role_serverless_arn" {
   name  = "${local.ssm_prefix}/infra/github_role_serverless_arn"
   type  = "String"
-  value = aws_iam_role.github["serverless"].arn
+  value = local.ci_role_arns.serverless
 }
 
 resource "aws_ssm_parameter" "github_role_infra_kubernetes_arn" {
   name  = "${local.ssm_prefix}/infra/github_role_infra_kubernetes_arn"
   type  = "String"
-  value = aws_iam_role.github["infra_kubernetes"].arn
+  value = local.ci_role_arns.infra_kubernetes
 }
 
 resource "aws_ssm_parameter" "github_role_infra_database_arn" {
   name  = "${local.ssm_prefix}/infra/github_role_infra_database_arn"
   type  = "String"
-  value = aws_iam_role.github["infra_database"].arn
+  value = local.ci_role_arns.infra_database
 }
 
 resource "aws_ssm_parameter" "auth_rate_limit_table" {
@@ -124,10 +136,28 @@ resource "aws_ssm_parameter" "auth_rate_limit_table" {
   value = aws_dynamodb_table.auth_cpf_rate_limit.name
 }
 
-resource "aws_ssm_parameter" "api_notificacao_irsa_role_arn" {
-  name  = "${local.ssm_prefix}/infra/api_notificacao_irsa_role_arn"
+resource "aws_ssm_parameter" "os_service_irsa_role_arn" {
+  name  = "${local.ssm_prefix}/infra/os_service_irsa_role_arn"
   type  = "String"
-  value = aws_iam_role.api_notificacao_irsa.arn
+  value = aws_iam_role.os_service_irsa.arn
+}
+
+resource "aws_ssm_parameter" "billing_irsa_role_arn" {
+  name  = "${local.ssm_prefix}/infra/billing_irsa_role_arn"
+  type  = "String"
+  value = aws_iam_role.billing_irsa.arn
+}
+
+resource "aws_ssm_parameter" "execution_irsa_role_arn" {
+  name  = "${local.ssm_prefix}/infra/execution_irsa_role_arn"
+  type  = "String"
+  value = aws_iam_role.execution_irsa.arn
+}
+
+resource "aws_ssm_parameter" "db_admin_job_irsa_role_arn" {
+  name  = "${local.ssm_prefix}/infra/db_admin_job_irsa_role_arn"
+  type  = "String"
+  value = aws_iam_role.db_admin_job_irsa.arn
 }
 
 resource "aws_ssm_parameter" "api_gateway_url" {

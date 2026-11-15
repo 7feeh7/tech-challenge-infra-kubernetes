@@ -27,7 +27,7 @@ module "eks" {
   enable_cluster_creator_admin_permissions = false
 
   kms_key_administrators = [
-    "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-${var.environment}-github-infra-k8s",
+    local.ci_role_arns.infra_kubernetes,
     "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/github-actions",
   ]
 
@@ -44,7 +44,7 @@ module "eks" {
       }
     }
     github_infra_kubernetes = {
-      principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-${var.environment}-github-infra-k8s"
+      principal_arn = local.ci_role_arns.infra_kubernetes
       policy_associations = {
         admin = {
           policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
@@ -55,12 +55,50 @@ module "eks" {
       }
     }
     github_app = {
-      principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-${var.environment}-github-oficina"
+      principal_arn = local.ci_role_arns.app
       policy_associations = {
-        admin = {
+        oficina = {
           policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
           access_scope = {
-            type = "cluster"
+            type       = "namespace"
+            namespaces = ["oficina"]
+          }
+        }
+      }
+    }
+    github_billing = {
+      principal_arn = local.ci_role_arns.billing
+      policy_associations = {
+        billing = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type       = "namespace"
+            namespaces = ["billing"]
+          }
+        }
+      }
+    }
+    github_execution = {
+      principal_arn = local.ci_role_arns.execution
+      policy_associations = {
+        execution = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type       = "namespace"
+            namespaces = ["execution"]
+          }
+        }
+      }
+    }
+    github_infra_database = {
+      principal_arn     = local.ci_role_arns.infra_database
+      kubernetes_groups = ["infra-database-ci"]
+      policy_associations = {
+        administracao = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSEditPolicy"
+          access_scope = {
+            type       = "namespace"
+            namespaces = ["administracao"]
           }
         }
       }

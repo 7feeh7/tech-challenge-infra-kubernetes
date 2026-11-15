@@ -38,6 +38,26 @@ output "ssm_prefix" {
   value       = local.ssm_prefix
 }
 
+output "github_ci_role_arns" {
+  description = "ARNs das roles de CI (provisionadas no root bootstrap; convencao de nome)."
+  value       = local.ci_role_arns
+}
+
+output "irsa_role_arns" {
+  description = "ARNs das IRSAs de runtime por servico."
+  value = {
+    os_service = aws_iam_role.os_service_irsa.arn
+    billing    = aws_iam_role.billing_irsa.arn
+    execution  = aws_iam_role.execution_irsa.arn
+    db_admin   = aws_iam_role.db_admin_job_irsa.arn
+  }
+}
+
+output "kubernetes_namespaces" {
+  description = "Namespaces de workload gerenciados pelo stack principal."
+  value       = ["oficina", "billing", "execution", "administracao"]
+}
+
 output "kubeconfig_command" {
   description = "Comando para configurar kubectl."
   value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.eks.cluster_name}"
