@@ -11,36 +11,21 @@ resource "aws_iam_role" "github" {
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
-    Statement = flatten([
-      for suffix in local.github_oidc_subject_suffixes : [
-        {
-          Effect = "Allow"
-          Principal = {
-            Federated = aws_iam_openid_connect_provider.github.arn
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Federated = aws_iam_openid_connect_provider.github.arn
+        }
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Condition = {
+          StringEquals = {
+            "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+            "token.actions.githubusercontent.com:sub" = local.github_oidc_subject[each.key]
           }
-          Action = "sts:AssumeRoleWithWebIdentity"
-          Condition = {
-            StringEquals = {
-              "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-              "token.actions.githubusercontent.com:sub" = "repo:${var.github_org}/${each.value.name}:${suffix}"
-            }
-          }
-        },
-        {
-          Effect = "Allow"
-          Principal = {
-            Federated = aws_iam_openid_connect_provider.github.arn
-          }
-          Action = "sts:AssumeRoleWithWebIdentity"
-          Condition = {
-            StringEquals = {
-              "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-              "token.actions.githubusercontent.com:sub" = "repo:${var.github_org}@${var.github_owner_id}/${each.value.name}@${each.value.repo_id}:${suffix}"
-            }
-          }
-        },
-      ]
-    ])
+        }
+      },
+    ]
   })
 
   tags = {
@@ -163,16 +148,6 @@ resource "aws_iam_role_policy" "github_app" {
         ]
         Resource = local.sqs_os_prefix_arn
       },
-      {
-        Effect   = "Allow"
-        Action   = ["s3:ListBucket", "s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
-        Resource = [local.terraform_state_bucket_arn, "${local.terraform_state_bucket_arn}/*"]
-      },
-      {
-        Effect   = "Allow"
-        Action   = ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:DeleteItem"]
-        Resource = local.terraform_lock_table_arn
-      },
     ]
   })
 }
@@ -239,16 +214,6 @@ resource "aws_iam_role_policy" "github_billing" {
           "sqs:ListQueueTags",
         ]
         Resource = local.sqs_billing_prefix_arn
-      },
-      {
-        Effect   = "Allow"
-        Action   = ["s3:ListBucket", "s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
-        Resource = [local.terraform_state_bucket_arn, "${local.terraform_state_bucket_arn}/*"]
-      },
-      {
-        Effect   = "Allow"
-        Action   = ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:DeleteItem"]
-        Resource = local.terraform_lock_table_arn
       },
     ]
   })
@@ -329,99 +294,6 @@ resource "aws_iam_role_policy" "github_execution" {
         ]
         Resource = local.dynamodb_execution_arn
       },
-      {
-        Effect   = "Allow"
-        Action   = ["s3:ListBucket", "s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
-        Resource = [local.terraform_state_bucket_arn, "${local.terraform_state_bucket_arn}/*"]
-      },
-      {
-        Effect   = "Allow"
-        Action   = ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:DeleteItem"]
-        Resource = local.terraform_lock_table_arn
-      },
-    ]
-  })
-}
-
-#tfsec:ignore:aws-iam-no-policy-wildcards
-resource "aws_iam_role_policy" "github_infra_kubernetes" {
-  name = "${local.resource_name_prefix}-github-infra-k8s-policy"
-  role = aws_iam_role.github["infra_kubernetes"].id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "acm:*",
-          "apigateway:*",
-          "autoscaling:*",
-          "cloudwatch:*",
-          "dynamodb:*",
-          "ec2:*",
-          "ecr:*",
-          "eks:*",
-          "elasticloadbalancing:*",
-          "events:*",
-          "logs:*",
-          "kms:*",
-          "lambda:*",
-          "route53:*",
-          "s3:*",
-          "sns:*",
-          "sqs:*",
-          "ssm:*",
-          "secretsmanager:*",
-        ]
-        Resource = "*"
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "iam:GetRole",
-          "iam:GetRolePolicy",
-          "iam:ListRolePolicies",
-          "iam:ListAttachedRolePolicies",
-          "iam:ListInstanceProfilesForRole",
-          "iam:CreateRole",
-          "iam:DeleteRole",
-          "iam:UpdateRole",
-          "iam:TagRole",
-          "iam:UntagRole",
-          "iam:PutRolePolicy",
-          "iam:DeleteRolePolicy",
-          "iam:AttachRolePolicy",
-          "iam:DetachRolePolicy",
-          "iam:PassRole",
-        ]
-        Resource = "arn:aws:iam::${local.account_id}:role/${local.resource_name_prefix}-*"
-      },
-      {
-        Effect   = "Allow"
-        Action   = ["iam:CreateServiceLinkedRole"]
-        Resource = "*"
-        Condition = {
-          StringEquals = {
-            "iam:AWSServiceName" = [
-              "eks.amazonaws.com",
-              "eks-nodegroup.amazonaws.com",
-              "elasticloadbalancing.amazonaws.com",
-              "autoscaling.amazonaws.com",
-            ]
-          }
-        }
-      },
-      {
-        Effect   = "Allow"
-        Action   = ["s3:ListBucket", "s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
-        Resource = [local.terraform_state_bucket_arn, "${local.terraform_state_bucket_arn}/*"]
-      },
-      {
-        Effect   = "Allow"
-        Action   = ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:DeleteItem"]
-        Resource = local.terraform_lock_table_arn
-      },
     ]
   })
 }
@@ -481,16 +353,6 @@ resource "aws_iam_role_policy" "github_infra_database_ops" {
         Effect   = "Allow"
         Action   = ["cloudwatch:*", "logs:*"]
         Resource = "*"
-      },
-      {
-        Effect   = "Allow"
-        Action   = ["s3:ListBucket", "s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
-        Resource = [local.terraform_state_bucket_arn, "${local.terraform_state_bucket_arn}/*"]
-      },
-      {
-        Effect   = "Allow"
-        Action   = ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:DeleteItem"]
-        Resource = local.terraform_lock_table_arn
       },
     ]
   })

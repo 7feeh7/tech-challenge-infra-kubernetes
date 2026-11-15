@@ -21,9 +21,57 @@ locals {
   resource_name_prefix = "${var.project_name}-${var.environment}"
   secret_path_prefix   = "${var.project_name}/${var.environment}"
 
-  github_oidc_subject_suffixes = [
-    "ref:refs/heads/main",
-    "environment:${var.environment}",
+  boundary_workload_arn   = "arn:aws:iam::${local.account_id}:policy/${local.resource_name_prefix}-boundary-workload"
+  boundary_plataforma_arn = "arn:aws:iam::${local.account_id}:policy/${local.resource_name_prefix}-boundary-plataforma"
+
+  stack_iam_role_arns_workload = [
+    "arn:aws:iam::${local.account_id}:role/${local.resource_name_prefix}-os-service",
+    "arn:aws:iam::${local.account_id}:role/${local.resource_name_prefix}-billing-service",
+    "arn:aws:iam::${local.account_id}:role/${local.resource_name_prefix}-execution-service",
+    "arn:aws:iam::${local.account_id}:role/${local.resource_name_prefix}-db-admin-job",
+    "arn:aws:iam::${local.account_id}:role/${local.resource_name_prefix}-lambda-role",
+    "arn:aws:iam::${local.account_id}:role/${local.resource_name_prefix}-lambda-notificacao-role",
+  ]
+
+  stack_iam_role_arns_plataforma = [
+    "arn:aws:iam::${local.account_id}:role/${local.resource_name_prefix}-cluster-autoscaler",
+    "arn:aws:iam::${local.account_id}:role/${local.cluster_name}",
+    "arn:aws:iam::${local.account_id}:role/${local.cluster_name}-node",
+  ]
+
+  stack_iam_role_arns = concat(local.stack_iam_role_arns_workload, local.stack_iam_role_arns_plataforma)
+
+  bootstrap_state_prefix = "tech-challenge-infra-kubernetes/bootstrap"
+  bootstrap_state_object = "${local.terraform_state_bucket_arn}/${local.bootstrap_state_prefix}/*"
+
+  # Chave S3 de state por papel de CI (pipeline); bootstrap protegido para todas as roles.
+  ci_terraform_state_prefixes = {
+    app              = "tech-challenge-oficina/${var.environment}/"
+    billing          = "tech-challenge-billing/${var.environment}/"
+    execution        = "tech-challenge-execution/${var.environment}/"
+    serverless       = ""
+    infra_kubernetes = "tech-challenge-infra-kubernetes/${var.environment}/"
+    infra_database   = "tech-challenge-infra-database/${var.environment}/"
+  }
+
+  ci_terraform_uses_state_lock = {
+    app              = true
+    billing          = true
+    execution        = true
+    serverless       = false
+    infra_kubernetes = true
+    infra_database   = true
+  }
+
+  eks_attachable_policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
+    "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController",
+    "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+    "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
+    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
+    "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess",
   ]
 
   github_repos = {
@@ -61,6 +109,12 @@ locals {
 
   terraform_state_bucket_arn = "arn:aws:s3:::${var.project_name}-terraform-state-*"
   terraform_lock_table_arn   = "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${var.project_name}-terraform-lock"
+
+  # Formato imutavel GitHub (docs OIDC): IDs no segmento repo org@ownerId/name@repoId.
+  github_oidc_subject = {
+    for key, repo in local.github_repos :
+    key => "repo:${var.github_org}@${var.github_owner_id}/${repo.name}@${repo.repo_id}:environment:${var.environment}:ref:refs/heads/main"
+  }
 }
 
 provider "aws" {

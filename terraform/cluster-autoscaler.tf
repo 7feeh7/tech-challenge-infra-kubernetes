@@ -32,8 +32,9 @@ data "aws_iam_policy_document" "cluster_autoscaler_assume_role" {
 }
 
 resource "aws_iam_role" "cluster_autoscaler_irsa" {
-  name               = "${var.project_name}-${var.environment}-cluster-autoscaler"
-  assume_role_policy = data.aws_iam_policy_document.cluster_autoscaler_assume_role.json
+  name                 = "${var.project_name}-${var.environment}-cluster-autoscaler"
+  assume_role_policy   = data.aws_iam_policy_document.cluster_autoscaler_assume_role.json
+  permissions_boundary = local.permissions_boundary_plataforma_arn
 }
 
 # Policy oficial do Cluster Autoscaler AWS: wildcards em describe e scale com

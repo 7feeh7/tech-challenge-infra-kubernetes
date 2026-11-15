@@ -1,4 +1,7 @@
 locals {
+  permissions_boundary_workload_arn   = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/${var.project_name}-${var.environment}-boundary-workload"
+  permissions_boundary_plataforma_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/${var.project_name}-${var.environment}-boundary-plataforma"
+
   ci_role_names = {
     app              = "${var.project_name}-${var.environment}-github-oficina"
     billing          = "${var.project_name}-${var.environment}-github-billing"

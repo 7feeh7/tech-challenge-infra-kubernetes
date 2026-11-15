@@ -23,8 +23,9 @@ data "aws_iam_policy_document" "os_service_irsa_assume" {
 }
 
 resource "aws_iam_role" "os_service_irsa" {
-  name               = local.irsa_role_names.os_service
-  assume_role_policy = data.aws_iam_policy_document.os_service_irsa_assume.json
+  name                 = local.irsa_role_names.os_service
+  assume_role_policy   = data.aws_iam_policy_document.os_service_irsa_assume.json
+  permissions_boundary = local.permissions_boundary_workload_arn
 }
 
 resource "aws_iam_role_policy" "os_service_runtime" {
@@ -100,8 +101,9 @@ data "aws_iam_policy_document" "billing_irsa_assume" {
 }
 
 resource "aws_iam_role" "billing_irsa" {
-  name               = local.irsa_role_names.billing
-  assume_role_policy = data.aws_iam_policy_document.billing_irsa_assume.json
+  name                 = local.irsa_role_names.billing
+  assume_role_policy   = data.aws_iam_policy_document.billing_irsa_assume.json
+  permissions_boundary = local.permissions_boundary_workload_arn
 }
 
 resource "aws_iam_role_policy" "billing_runtime" {
@@ -159,8 +161,9 @@ data "aws_iam_policy_document" "execution_irsa_assume" {
 }
 
 resource "aws_iam_role" "execution_irsa" {
-  name               = local.irsa_role_names.execution
-  assume_role_policy = data.aws_iam_policy_document.execution_irsa_assume.json
+  name                 = local.irsa_role_names.execution
+  assume_role_policy   = data.aws_iam_policy_document.execution_irsa_assume.json
+  permissions_boundary = local.permissions_boundary_workload_arn
 }
 
 #tfsec:ignore:aws-iam-no-policy-wildcards
@@ -235,8 +238,9 @@ data "aws_iam_policy_document" "db_admin_job_irsa_assume" {
 }
 
 resource "aws_iam_role" "db_admin_job_irsa" {
-  name               = local.irsa_role_names.db_admin
-  assume_role_policy = data.aws_iam_policy_document.db_admin_job_irsa_assume.json
+  name                 = local.irsa_role_names.db_admin
+  assume_role_policy   = data.aws_iam_policy_document.db_admin_job_irsa_assume.json
+  permissions_boundary = local.permissions_boundary_workload_arn
 }
 
 #tfsec:ignore:aws-iam-no-policy-wildcards

@@ -11,6 +11,10 @@ module "eks" {
   cluster_name    = local.cluster_name
   cluster_version = var.kubernetes_version
 
+  iam_role_name                 = local.cluster_name
+  iam_role_use_name_prefix      = false
+  iam_role_permissions_boundary = local.permissions_boundary_plataforma_arn
+
   cluster_endpoint_public_access = true
 
   cluster_enabled_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
@@ -112,6 +116,10 @@ module "eks" {
       desired_size = var.node_desired_size
       min_size     = var.node_min_size
       max_size     = var.node_max_size
+
+      iam_role_name                 = "${local.cluster_name}-node"
+      iam_role_use_name_prefix      = false
+      iam_role_permissions_boundary = local.permissions_boundary_plataforma_arn
 
       tags = local.cluster_autoscaler_asg_tags
     }
