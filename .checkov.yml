@@ -31,6 +31,11 @@ skip-check:
   - CKV_AWS_355
   - CKV_AWS_356
   - CKV2_AWS_40
+  # Policy document CI infra-kubernetes (bootstrap/github_infra_kubernetes_policy.tf); checkov nao associa skip inline ao data source.
+  - CKV_AWS_107
+  - CKV_AWS_108
+  - CKV_AWS_109
+  - CKV_AWS_111
 
   # Lambda academica.
   - CKV_AWS_272 # code signing

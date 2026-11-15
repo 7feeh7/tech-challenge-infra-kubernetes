@@ -23,6 +23,7 @@ locals {
   ]
 }
 
+# Policy de apply do stack EKS/Gateway; excecoes Checkov CKV_AWS_107-111 em .checkov.yml (compensacoes E06).
 data "aws_iam_policy_document" "github_infra_kubernetes" {
   statement {
     sid    = "StackServicos"
