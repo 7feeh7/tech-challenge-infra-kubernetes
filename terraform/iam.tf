@@ -1,5 +1,6 @@
 resource "aws_iam_role" "lambda_execution" {
-  name = "${var.project_name}-${var.environment}-lambda-role"
+  name                 = "${var.project_name}-${var.environment}-lambda-role"
+  permissions_boundary = local.permissions_boundary_workload_arn
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -36,7 +37,8 @@ data "aws_caller_identity" "current" {}
 # infra-database depois). Restrito a conta atual e ao prefixo do projeto.
 #tfsec:ignore:aws-iam-no-policy-wildcards
 resource "aws_iam_role" "lambda_notificacao_execution" {
-  name = "${var.project_name}-${var.environment}-lambda-notificacao-role"
+  name                 = "${var.project_name}-${var.environment}-lambda-notificacao-role"
+  permissions_boundary = local.permissions_boundary_workload_arn
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
