@@ -79,7 +79,6 @@ jobs:
           set -o pipefail
           terraform plan -no-color \
             -var="environment=${{ env.TF_ENVIRONMENT }}" \
-            -var="jwt_secret=${{ secrets.JWT_SECRET }}" \
             -var="db_secret_arn=${{ secrets.DB_SECRET_ARN }}" \
             -var="lambda_s3_bucket=${{ secrets.LAMBDA_ARTIFACTS_BUCKET }}" \
             -var="sendgrid_api_key=${{ secrets.SENDGRID_API_KEY }}" \
@@ -112,7 +111,6 @@ jobs:
         run: |
           terraform destroy -auto-approve \
             -var="environment=${{ env.TF_ENVIRONMENT }}" \
-            -var="jwt_secret=${{ secrets.JWT_SECRET }}" \
             -var="db_secret_arn=${{ secrets.DB_SECRET_ARN }}" \
             -var="lambda_s3_bucket=${{ secrets.LAMBDA_ARTIFACTS_BUCKET }}" \
             -var="sendgrid_api_key=${{ secrets.SENDGRID_API_KEY }}" \
@@ -154,9 +152,10 @@ jobs:
             exit 0
           fi
           JWT_ARN=$(aws ssm get-parameter --name "${PREFIX}/infra/jwt_secret_arn" --query Parameter.Value --output text)
+          TOKEN_OS_ARN=$(aws ssm get-parameter --name "${PREFIX}/infra/token_auth_cpf_os_secret_arn" --query Parameter.Value --output text)
           LAMBDA=$(aws ssm get-parameter --name "${PREFIX}/infra/lambda_auth_function_name" --query Parameter.Value --output text)
           TABLE=$(aws ssm get-parameter --name "${PREFIX}/infra/auth_rate_limit_table" --query Parameter.Value --output text)
           aws lambda update-function-configuration \
             --function-name "$LAMBDA" \
-            --environment "Variables={DB_SECRET_ARN=${DB_ARN},JWT_SECRET_ARN=${JWT_ARN},AUTH_RATE_LIMIT_TABLE=${TABLE},NODE_ENV=${{ env.TF_ENVIRONMENT }}}"
+            --environment "Variables={DB_SECRET_ARN=${DB_ARN},JWT_SECRET_ARN=${JWT_ARN},AUTH_CPF_OS_TOKEN_ARN=${TOKEN_OS_ARN},AUTH_RATE_LIMIT_TABLE=${TABLE},NODE_ENV=${{ env.TF_ENVIRONMENT }}}"
           aws lambda wait function-updated --function-name "$LAMBDA"

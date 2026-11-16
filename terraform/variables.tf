@@ -68,9 +68,10 @@ variable "lambda_s3_key" {
 }
 
 variable "jwt_secret" {
-  description = "Segredo JWT para a Function de autenticacao."
+  description = "Obsoleto (E08): chave privada RS256 gravada pelo autor no Secrets Manager. Mantido so para compatibilidade do workflow de deploy legado."
   type        = string
   sensitive   = true
+  default     = ""
 }
 
 variable "db_secret_arn" {
