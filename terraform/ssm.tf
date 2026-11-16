@@ -89,9 +89,38 @@ resource "aws_ssm_parameter" "sendgrid_secret_arn" {
 }
 
 resource "aws_ssm_parameter" "jwt_secret_arn" {
-  name  = "${local.ssm_prefix}/infra/jwt_secret_arn"
-  type  = "String"
-  value = aws_secretsmanager_secret.jwt.arn
+  name        = "${local.ssm_prefix}/infra/jwt_secret_arn"
+  type        = "String"
+  description = "Chave privada RS256 (JWT). Nome legado ate E14 publicar jwt_private_secret_arn no OS."
+  value       = aws_secretsmanager_secret.jwt_private.arn
+}
+
+resource "aws_ssm_parameter" "jwt_public_secret_arn" {
+  name        = "${local.ssm_prefix}/infra/jwt_public_secret_arn"
+  type        = "String"
+  description = "Chave publica RS256 para validacao de JWT."
+  value       = aws_secretsmanager_secret.jwt_public.arn
+}
+
+resource "aws_ssm_parameter" "token_billing_os_secret_arn" {
+  name        = "${local.ssm_prefix}/infra/token_billing_os_secret_arn"
+  type        = "String"
+  description = "Token da relacao billing-os (chamador Billing, validador OS)."
+  value       = aws_secretsmanager_secret.token_billing_os.arn
+}
+
+resource "aws_ssm_parameter" "token_execution_os_secret_arn" {
+  name        = "${local.ssm_prefix}/infra/token_execution_os_secret_arn"
+  type        = "String"
+  description = "Token da relacao execution-os."
+  value       = aws_secretsmanager_secret.token_execution_os.arn
+}
+
+resource "aws_ssm_parameter" "token_auth_cpf_os_secret_arn" {
+  name        = "${local.ssm_prefix}/infra/token_auth_cpf_os_secret_arn"
+  type        = "String"
+  description = "Token da relacao auth-cpf-os (Lambda auth-cpf e OS)."
+  value       = aws_secretsmanager_secret.token_auth_cpf_os.arn
 }
 
 resource "aws_ssm_parameter" "github_role_app_arn" {

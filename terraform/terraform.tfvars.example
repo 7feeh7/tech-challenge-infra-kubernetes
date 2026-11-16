@@ -5,4 +5,5 @@ vpc_cidr           = "10.0.0.0/16"
 kubernetes_version = "1.31"
 lambda_s3_bucket   = "tech-challenge-lambda-artifacts-producao"
 
-# jwt_secret e db_secret_arn sao passados via TF_VAR ou secrets do CI/CD (Environment producao)
+# jwt_secret obsoleto (E08): chaves RS256 gravadas no Secrets Manager pelo autor (runbook 4.1).
+# db_secret_arn via TF_VAR ou secret do CI/CD quando aplicavel.

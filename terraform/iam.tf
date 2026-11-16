@@ -121,8 +121,9 @@ resource "aws_iam_role_policy" "lambda_secrets" {
           "secretsmanager:DescribeSecret"
         ]
         Resource = compact([
-          var.db_secret_arn != "" ? var.db_secret_arn : "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:${var.project_name}/*",
-          aws_secretsmanager_secret.jwt.arn,
+          var.db_secret_arn != "" ? var.db_secret_arn : "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:${var.project_name}/${var.environment}/db-credentials-*",
+          aws_secretsmanager_secret.jwt_private.arn,
+          aws_secretsmanager_secret.token_auth_cpf_os.arn,
         ])
       }
     ]

@@ -41,6 +41,11 @@ Prefixo: `/tech-challenge/producao/infra/`
 | `lambda_artifacts_bucket` | serverless CI |
 | `sns_notificacao_topic_arn` | tech-challenge CI |
 | `api_notificacao_irsa_role_arn` | tech-challenge CI |
+| `jwt_secret_arn` | OS CI (chave privada RS256), Lambda `auth-cpf` |
+| `jwt_public_secret_arn` | Billing, Execution e OS CI |
+| `token_billing_os_secret_arn` | Billing e OS CI |
+| `token_execution_os_secret_arn` | Execution e OS CI |
+| `token_auth_cpf_os_secret_arn` | Lambda `auth-cpf` e OS CI |
 | `sendgrid_secret_arn` | troubleshooting |
 | `sqs_notificacao_queue_url` | troubleshooting |
 | `sqs_notificacao_dlq_url` | troubleshooting DLQ |

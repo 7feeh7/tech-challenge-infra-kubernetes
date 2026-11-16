@@ -7,3 +7,9 @@ moved {
   from = module.eks.aws_eks_access_policy_association.this["cluster_creator_admin"]
   to   = module.eks.aws_eks_access_policy_association.this["github_actions_bootstrap_admin"]
 }
+
+moved {
+  from = aws_secretsmanager_secret.jwt
+  to   = aws_secretsmanager_secret.jwt_private
+}
+
