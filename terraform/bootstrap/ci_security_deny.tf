@@ -13,6 +13,8 @@ data "aws_iam_policy_document" "github_ci_security_deny" {
     resources = [
       aws_iam_policy.boundary_workload.arn,
       aws_iam_policy.boundary_plataforma.arn,
+      # Policies gerenciadas das proprias CIs: sem isto uma CI com iam:CreatePolicyVersion removeria as restricoes dela.
+      "arn:aws:iam::${local.account_id}:policy/${local.resource_name_prefix}-github-*",
     ]
   }
 

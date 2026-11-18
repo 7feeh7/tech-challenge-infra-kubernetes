@@ -41,6 +41,13 @@ locals {
 
   stack_iam_role_arns = concat(local.stack_iam_role_arns_workload, local.stack_iam_role_arns_plataforma)
 
+  # Roles individuais usadas nas fronteiras de segredo (boundary workload) e nos pares role->servico do PassRole.
+  lambda_auth_role_arn        = "arn:aws:iam::${local.account_id}:role/${local.resource_name_prefix}-lambda-role"
+  lambda_notificacao_role_arn = "arn:aws:iam::${local.account_id}:role/${local.resource_name_prefix}-lambda-notificacao-role"
+  db_admin_job_role_arn       = "arn:aws:iam::${local.account_id}:role/${local.resource_name_prefix}-db-admin-job"
+  eks_cluster_role_arn        = "arn:aws:iam::${local.account_id}:role/${local.cluster_name}"
+  eks_node_group_role_arn     = "arn:aws:iam::${local.account_id}:role/${local.cluster_name}-node"
+
   bootstrap_state_prefix = "tech-challenge-infra-kubernetes/bootstrap"
   bootstrap_state_object = "${local.terraform_state_bucket_arn}/${local.bootstrap_state_prefix}/*"
 

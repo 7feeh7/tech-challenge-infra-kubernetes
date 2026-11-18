@@ -41,6 +41,8 @@ flowchart TB
 | S3                                        | Artefatos ZIP das Functions                                        |
 | SSM                                       | Exports consumidos pelos demais repositorios                       |
 
+Quais pipelines e roles alcancam os segredos criticos (chave privada JWT e segredo master do banco), e por que, estao em [`docs/segredos-rs256.md`](docs/segredos-rs256.md#fronteira-de-confianca).
+
 ## Repositórios relacionados
 
 | Repositório                                | URL                                                       | Integração                              |
