@@ -74,12 +74,6 @@ variable "jwt_secret" {
   default     = ""
 }
 
-variable "db_secret_arn" {
-  description = "ARN do secret do banco (preenchido apos deploy do repo database)."
-  type        = string
-  default     = ""
-}
-
 variable "lambda_timeout" {
   description = "Timeout da Lambda em segundos."
   type        = number

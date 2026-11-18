@@ -56,7 +56,9 @@ Prefixo: `/tech-challenge/producao/database/`
 
 | Parametro | Consumidor |
 | --- | --- |
-| `db_secret_arn` | Lambda auth, tech-challenge CI |
+| `db_secret_arn` | tech-challenge CI (usuario `oficina`); a Lambda `auth-cpf` nao consome segredo PostgreSQL |
+| `billing_db_secret_arn` | tech-challenge-billing CI (usuario `billing`) |
+| `master_db_secret_arn` | so o workflow do Job administrativo (`db-admin-job.yml` do infra-database); nenhum microsservico, Lambda ou CI de aplicacao |
 | `rds_endpoint` | troubleshooting |
 
 ## State Terraform

@@ -20,7 +20,7 @@ Prefixo: `/tech-challenge/producao/infra/`
 
 | Parametro | Finalidade | Consumidores (workflow / runtime) |
 | --- | --- | --- |
-| `jwt_secret_arn` | ARN da chave **privada** RS256 (nome legado para o OS) | `tech-challenge` deploy/migrate, job de atualizacao da Lambda, `serverless` via env da Function |
+| `jwt_secret_arn` | ARN da chave **privada** RS256 (nome legado para o OS) | `tech-challenge` deploy/migrate, `serverless` via env da Function |
 | `jwt_public_secret_arn` | ARN da chave publica | `tech-challenge-billing` deploy/migrate |
 | `token_billing_os_secret_arn` | Token `billing-os` | `tech-challenge-billing` deploy/migrate |
 | `token_execution_os_secret_arn` | Token `execution-os` | `tech-challenge-execution` deploy (previsto E25) |
@@ -74,3 +74,7 @@ Use uma chave descartavel; rotacione o par usado em producao em E39 se o teste t
 ## IRSA
 
 Nenhuma IRSA de aplicacao le Secrets Manager (D6.5). Somente pipelines (roles `github-*`) e a role de execucao da Lambda `auth-cpf`.
+
+## CI do infra-kubernetes
+
+A role de CI do `infra-kubernetes` so gerencia os conteineres de `jwt-*`, `token-*` e `sendgrid-*` (criar, descrever, etiquetar, excluir) e nao tem `GetSecretValue`, `PutSecretValue` nem `PutResourcePolicy` neles. Leitura e gravacao de valor ficam so no `sendgrid-*`, que o Terraform grava (`aws_secretsmanager_secret_version.sendgrid_api_key`).

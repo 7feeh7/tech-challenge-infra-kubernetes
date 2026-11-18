@@ -33,9 +33,6 @@ resource "aws_iam_role_policy_attachment" "lambda_xray" {
 
 data "aws_caller_identity" "current" {}
 
-# Wildcard apenas enquanto db_secret_arn nao existe (secret criado pelo repo
-# infra-database depois). Restrito a conta atual e ao prefixo do projeto.
-#tfsec:ignore:aws-iam-no-policy-wildcards
 resource "aws_iam_role" "lambda_notificacao_execution" {
   name                 = "${var.project_name}-${var.environment}-lambda-notificacao-role"
   permissions_boundary = local.permissions_boundary_workload_arn
@@ -120,11 +117,10 @@ resource "aws_iam_role_policy" "lambda_secrets" {
           "secretsmanager:GetSecretValue",
           "secretsmanager:DescribeSecret"
         ]
-        Resource = compact([
-          var.db_secret_arn != "" ? var.db_secret_arn : "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:${var.project_name}/${var.environment}/db-credentials-*",
+        Resource = [
           aws_secretsmanager_secret.jwt_private.arn,
           aws_secretsmanager_secret.token_auth_cpf_os.arn,
-        ])
+        ]
       }
     ]
   })
