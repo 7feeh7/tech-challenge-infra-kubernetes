@@ -7,3 +7,25 @@ lambda_s3_bucket   = "tech-challenge-lambda-artifacts-producao"
 
 # jwt_secret obsoleto (E08): chaves RS256 gravadas no Secrets Manager pelo autor (runbook 4.1).
 # db_secret_arn via TF_VAR ou secret do CI/CD quando aplicavel.
+
+# Limites dos monitores Datadog (opcionais; valores abaixo sao os padroes). Detalhes em docs/observabilidade.md.
+# datadog_app_key e datadog_api_key vem de TF_VAR ou secret do CI/CD, nunca deste arquivo.
+# alarm_sqs_backlog_count                       = 100    # mensagens visiveis por fila
+# alarm_sqs_age_seconds                         = 300    # idade da mensagem mais antiga por fila
+# alarm_outbox_idade_segundos                   = 600    # idade da mensagem mais antiga pendente na outbox do OS
+# alarm_outbox_publicacao_falha_count           = 5      # falhas de publicacao em 10 min
+# alarm_consumo_erro_transitorio_count          = 10     # erros transitorios de consumo em 10 min
+# alarm_consumo_erro_permanente_count           = 0      # erros permanentes de consumo em 10 min
+# alarm_os_parada_sem_dado_minutos              = 15     # sem o gauge de idade por status (minimo 10)
+# alarm_situacao_financeira_indeterminada_count = 0      # sinais de situacao financeira indeterminada em 30 min
+# alarm_mercado_pago_falha_tecnica_count        = 5      # falhas tecnicas do Mercado Pago em 10 min
+# Limite de OS parada por status, em segundos; informe so os que mudam:
+# alarm_os_parada_segundos = {
+#   EM_DIAGNOSTICO       = 86400
+#   AGUARDANDO_APROVACAO = 259200
+#   AGUARDANDO_PAGAMENTO = 5400
+#   AGUARDANDO_EXECUCAO  = 172800
+#   EM_EXECUCAO          = 259200
+#   EM_CANCELAMENTO      = 1800
+#   FINALIZADA           = 604800
+# }

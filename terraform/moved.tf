@@ -13,3 +13,19 @@ moved {
   to   = aws_secretsmanager_secret.jwt_private
 }
 
+
+# Monitores de fila passaram de count para for_each por servico; o da notificacao mantem o estado.
+moved {
+  from = datadog_monitor.sqs_backlog[0]
+  to   = datadog_monitor.sqs_backlog["notificacao"]
+}
+
+moved {
+  from = datadog_monitor.sqs_age[0]
+  to   = datadog_monitor.sqs_age["notificacao"]
+}
+
+moved {
+  from = datadog_monitor.sqs_dlq[0]
+  to   = datadog_monitor.sqs_dlq["notificacao"]
+}

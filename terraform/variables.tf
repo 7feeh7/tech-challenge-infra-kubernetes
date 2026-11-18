@@ -182,15 +182,114 @@ variable "sqs_notificacao_max_receive_count" {
 }
 
 variable "alarm_sqs_age_seconds" {
-  description = "Limite de idade da mensagem mais antiga na fila de notificacao."
+  description = "Limite de idade da mensagem mais antiga em cada fila monitorada (notificacao, OS, Billing e Execution)."
   type        = number
   default     = 300
 }
 
 variable "alarm_sqs_backlog_count" {
-  description = "Limite de mensagens visiveis na fila de notificacao."
+  description = "Limite de mensagens visiveis em cada fila monitorada (notificacao, OS, Billing e Execution)."
   type        = number
   default     = 100
+}
+
+variable "alarm_outbox_idade_segundos" {
+  description = "Limite de idade da mensagem mais antiga pendente na outbox do OS."
+  type        = number
+  # Acima do prazo de reivindicacao do lote (OUTBOX_REIVINDICACAO_MS = 300 s), para nao alertar lote em publicacao.
+  default = 600
+
+  validation {
+    condition     = var.alarm_outbox_idade_segundos > 0
+    error_message = "alarm_outbox_idade_segundos deve ser maior que zero."
+  }
+}
+
+variable "alarm_outbox_publicacao_falha_count" {
+  description = "Limite de falhas de publicacao da outbox do OS em 10 minutos."
+  type        = number
+  default     = 5
+
+  validation {
+    condition     = var.alarm_outbox_publicacao_falha_count >= 1
+    error_message = "alarm_outbox_publicacao_falha_count deve ser no minimo 1."
+  }
+}
+
+variable "alarm_consumo_erro_transitorio_count" {
+  description = "Limite de erros transitorios de consumo de mensagens no OS em 10 minutos."
+  type        = number
+  default     = 10
+
+  validation {
+    condition     = var.alarm_consumo_erro_transitorio_count >= 1
+    error_message = "alarm_consumo_erro_transitorio_count deve ser no minimo 1."
+  }
+}
+
+variable "alarm_consumo_erro_permanente_count" {
+  description = "Limite de erros permanentes de consumo de mensagens no OS em 10 minutos (0 alerta no primeiro)."
+  type        = number
+  default     = 0
+
+  validation {
+    condition     = var.alarm_consumo_erro_permanente_count >= 0
+    error_message = "alarm_consumo_erro_permanente_count nao pode ser negativo."
+  }
+}
+
+variable "alarm_os_parada_segundos" {
+  description = "Limite, em segundos, da idade da OS mais antiga em cada status com duracao. Informe so os status que mudam."
+  type = object({
+    EM_DIAGNOSTICO       = optional(number, 86400)
+    AGUARDANDO_APROVACAO = optional(number, 259200)
+    # Prazo total da reserva (75 min, D4.6) mais 15 min para a verificacao periodica e a consulta financeira.
+    AGUARDANDO_PAGAMENTO = optional(number, 5400)
+    AGUARDANDO_EXECUCAO  = optional(number, 172800)
+    EM_EXECUCAO          = optional(number, 259200)
+    # A compensacao e automatica: mais de 30 min indica compensacao parada (D4.7).
+    EM_CANCELAMENTO = optional(number, 1800)
+    FINALIZADA      = optional(number, 604800)
+  })
+  default = {}
+
+  validation {
+    condition     = alltrue([for limite in values(var.alarm_os_parada_segundos) : limite > 0])
+    error_message = "Todos os limites de alarm_os_parada_segundos devem ser maiores que zero."
+  }
+}
+
+variable "alarm_os_parada_sem_dado_minutos" {
+  description = "Minutos sem o gauge de idade por status antes do monitor OS parada alertar (minimo 10, o dobro da janela de 5 minutos)."
+  type        = number
+  default     = 15
+
+  validation {
+    condition     = var.alarm_os_parada_sem_dado_minutos >= 10
+    error_message = "alarm_os_parada_sem_dado_minutos deve ser no minimo 10."
+  }
+}
+
+variable "alarm_situacao_financeira_indeterminada_count" {
+  description = "Limite de sinais de situacao financeira indeterminada (OS e Billing) em 30 minutos (0 alerta no primeiro)."
+  type        = number
+  default     = 0
+
+  validation {
+    condition     = var.alarm_situacao_financeira_indeterminada_count >= 0
+    error_message = "alarm_situacao_financeira_indeterminada_count nao pode ser negativo."
+  }
+}
+
+variable "alarm_mercado_pago_falha_tecnica_count" {
+  description = "Limite de falhas tecnicas do Mercado Pago (timeout, rede, HTTP 5xx, resposta invalida) em 10 minutos."
+  type        = number
+  default     = 5
+
+  validation {
+    condition     = var.alarm_mercado_pago_falha_tecnica_count >= 1
+    error_message = "alarm_mercado_pago_falha_tecnica_count deve ser no minimo 1."
+  }
 }
 
 variable "datadog_api_key" {
