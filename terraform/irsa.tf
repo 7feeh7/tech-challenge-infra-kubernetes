@@ -62,6 +62,11 @@ resource "aws_iam_role_policy" "os_service_runtime" {
           local.sqs_queue_arns.execution_in,
         ]
       },
+      {
+        Effect   = "Allow"
+        Action   = ["sqs:SendMessage"]
+        Resource = local.sqs_queue_arns.os_in_dlq
+      },
     ]
   })
 }
@@ -194,13 +199,17 @@ resource "aws_iam_role_policy" "execution_runtime" {
         Resource = [local.sqs_queue_arns.os_in]
       },
       {
+        Effect   = "Allow"
+        Action   = ["sqs:SendMessage"]
+        Resource = local.sqs_queue_arns.execution_in_dlq
+      },
+      {
         Effect = "Allow"
         Action = [
           "dynamodb:GetItem",
           "dynamodb:PutItem",
           "dynamodb:UpdateItem",
           "dynamodb:DeleteItem",
-          "dynamodb:Query",
           "dynamodb:Scan",
           "dynamodb:BatchGetItem",
           "dynamodb:BatchWriteItem",
@@ -208,6 +217,14 @@ resource "aws_iam_role_policy" "execution_runtime" {
           "dynamodb:DescribeTable",
         ]
         Resource = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.project_name}-${var.environment}-execution-*"
+      },
+      {
+        Effect = "Allow"
+        Action = ["dynamodb:Query"]
+        Resource = [
+          "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.project_name}-${var.environment}-execution-outbox/index/gsi-publicacao-pendente",
+          "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.project_name}-${var.environment}-execution-tarefas/index/gsi-fila-tarefas",
+        ]
       },
     ]
   })

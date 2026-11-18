@@ -6,7 +6,6 @@ kubernetes_version = "1.31"
 lambda_s3_bucket   = "tech-challenge-lambda-artifacts-producao"
 
 # jwt_secret obsoleto (E08): chaves RS256 gravadas no Secrets Manager pelo autor (runbook 4.1).
-# db_secret_arn via TF_VAR ou secret do CI/CD quando aplicavel.
 
 # Limites dos monitores Datadog (opcionais; valores abaixo sao os padroes). Detalhes em docs/observabilidade.md.
 # datadog_app_key e datadog_api_key vem de TF_VAR ou secret do CI/CD, nunca deste arquivo.

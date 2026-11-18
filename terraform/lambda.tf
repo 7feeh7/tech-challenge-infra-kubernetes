@@ -22,7 +22,6 @@ resource "aws_lambda_function" "auth_cpf" {
 
   environment {
     variables = {
-      DB_SECRET_ARN           = var.db_secret_arn
       JWT_SECRET_ARN          = aws_secretsmanager_secret.jwt_private.arn
       AUTH_CPF_OS_TOKEN_ARN   = aws_secretsmanager_secret.token_auth_cpf_os.arn
       JWT_ISSUER              = var.jwt_issuer

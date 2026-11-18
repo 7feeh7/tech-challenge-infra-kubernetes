@@ -5,6 +5,8 @@ locals {
     "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:${local.secret_path_prefix}/token-*",
   ]
 
+  infra_kubernetes_sendgrid_secret_arn = "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:${local.secret_path_prefix}/sendgrid-*"
+
   infra_stack_sqs_arns = [
     "arn:aws:sqs:${var.aws_region}:${local.account_id}:${local.resource_name_prefix}-notificacao-status",
     "arn:aws:sqs:${var.aws_region}:${local.account_id}:${local.resource_name_prefix}-notificacao-status-dlq",
@@ -23,8 +25,10 @@ locals {
   ]
 }
 
-# Policy de apply do stack EKS/Gateway; excecoes Checkov CKV_AWS_107-111 em .checkov.yml (compensacoes E06).
-data "aws_iam_policy_document" "github_infra_kubernetes" {
+# Policy de apply do stack EKS/Gateway, dividida em policies gerenciadas por afinidade (limite de 10.240 caracteres
+# das inline policies por role); excecoes Checkov CKV_AWS_107-111 em .checkov.yml (compensacoes E06).
+# Plataforma: rede, EKS, DynamoDB e KMS.
+data "aws_iam_policy_document" "github_infra_kubernetes_plataforma" {
   statement {
     sid    = "StackServicos"
     effect = "Allow"
@@ -66,6 +70,55 @@ data "aws_iam_policy_document" "github_infra_kubernetes" {
     resources = local.infra_stack_dynamodb_arns
   }
 
+  statement {
+    sid    = "KmsProjeto"
+    effect = "Allow"
+    actions = [
+      "kms:CreateKey",
+      "kms:CreateAlias",
+      "kms:DeleteAlias",
+      "kms:DescribeKey",
+      "kms:EnableKeyRotation",
+      "kms:GetKeyPolicy",
+      "kms:GetKeyRotationStatus",
+      "kms:ListAliases",
+      "kms:ListResourceTags",
+      "kms:PutKeyPolicy",
+      "kms:ScheduleKeyDeletion",
+      "kms:TagResource",
+      "kms:UntagResource",
+      "kms:UpdateKeyDescription",
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:GenerateDataKey",
+      "kms:CreateGrant",
+      "kms:ListGrants",
+      "kms:RevokeGrant",
+    ]
+    resources = ["*"]
+    condition {
+      test     = "ForAnyValue:StringLike"
+      variable = "kms:ResourceAliases"
+      values   = ["alias/${local.resource_name_prefix}-*", "alias/eks/${local.cluster_name}*"]
+    }
+  }
+
+  statement {
+    sid    = "KmsSemAlias"
+    effect = "Allow"
+    actions = [
+      "kms:CreateKey",
+      "kms:CreateAlias",
+      "kms:ListAliases",
+      "kms:DescribeKey",
+      "kms:TagResource",
+    ]
+    resources = ["*"]
+  }
+}
+
+# Servicos: SQS, SNS, ECR, Lambda, Secrets Manager e S3 de artefatos.
+data "aws_iam_policy_document" "github_infra_kubernetes_servicos" {
   statement {
     sid    = "SqsStack"
     effect = "Allow"
@@ -164,52 +217,8 @@ data "aws_iam_policy_document" "github_infra_kubernetes" {
     ]
   }
 
-  statement {
-    sid    = "KmsProjeto"
-    effect = "Allow"
-    actions = [
-      "kms:CreateKey",
-      "kms:CreateAlias",
-      "kms:DeleteAlias",
-      "kms:DescribeKey",
-      "kms:EnableKeyRotation",
-      "kms:GetKeyPolicy",
-      "kms:GetKeyRotationStatus",
-      "kms:ListAliases",
-      "kms:ListResourceTags",
-      "kms:PutKeyPolicy",
-      "kms:ScheduleKeyDeletion",
-      "kms:TagResource",
-      "kms:UntagResource",
-      "kms:UpdateKeyDescription",
-      "kms:Encrypt",
-      "kms:Decrypt",
-      "kms:GenerateDataKey",
-      "kms:CreateGrant",
-      "kms:ListGrants",
-      "kms:RevokeGrant",
-    ]
-    resources = ["*"]
-    condition {
-      test     = "ForAnyValue:StringLike"
-      variable = "kms:ResourceAliases"
-      values   = ["alias/${local.resource_name_prefix}-*", "alias/eks/${local.cluster_name}*"]
-    }
-  }
-
-  statement {
-    sid    = "KmsSemAlias"
-    effect = "Allow"
-    actions = [
-      "kms:CreateKey",
-      "kms:CreateAlias",
-      "kms:ListAliases",
-      "kms:DescribeKey",
-      "kms:TagResource",
-    ]
-    resources = ["*"]
-  }
-
+  # Conteineres de jwt-*, token-* e sendgrid-*: a stack nao define aws_secretsmanager_secret_policy, e
+  # PutResourcePolicy permitiria conceder a si mesmo a leitura da chave privada e dos tokens.
   statement {
     sid    = "SecretsInfraKubernetes"
     effect = "Allow"
@@ -217,16 +226,23 @@ data "aws_iam_policy_document" "github_infra_kubernetes" {
       "secretsmanager:CreateSecret",
       "secretsmanager:DeleteSecret",
       "secretsmanager:DescribeSecret",
-      "secretsmanager:GetSecretValue",
-      "secretsmanager:PutSecretValue",
       "secretsmanager:TagResource",
       "secretsmanager:UntagResource",
       "secretsmanager:ListSecretVersionIds",
       "secretsmanager:GetResourcePolicy",
-      "secretsmanager:PutResourcePolicy",
-      "secretsmanager:DeleteResourcePolicy",
     ]
     resources = local.infra_kubernetes_secret_arns
+  }
+
+  # Valor so do SendGrid, gravado e lido pelo aws_secretsmanager_secret_version.sendgrid_api_key.
+  statement {
+    sid    = "SecretsInfraKubernetesSendgridValor"
+    effect = "Allow"
+    actions = [
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:PutSecretValue",
+    ]
+    resources = [local.infra_kubernetes_sendgrid_secret_arn]
   }
 
   statement {
@@ -257,7 +273,10 @@ data "aws_iam_policy_document" "github_infra_kubernetes" {
       "arn:aws:s3:::${var.lambda_s3_bucket}",
     ]
   }
+}
 
+# IAM das roles do stack: leitura, criacao com boundary e Deny da troca cruzada de boundary.
+data "aws_iam_policy_document" "github_infra_kubernetes_iam_roles" {
   statement {
     sid    = "IamLeituraRoles"
     effect = "Allow"
@@ -346,7 +365,10 @@ data "aws_iam_policy_document" "github_infra_kubernetes" {
       values   = [local.boundary_workload_arn]
     }
   }
+}
 
+# IAM de anexo de policies, PassRole, trust, provedor OIDC do EKS, service-linked roles e Deny de sts:AssumeRole.
+data "aws_iam_policy_document" "github_infra_kubernetes_iam_acesso" {
   statement {
     sid    = "IamAttachWorkload"
     effect = "Allow"
@@ -474,8 +496,25 @@ data "aws_iam_policy_document" "github_infra_kubernetes" {
   }
 }
 
-resource "aws_iam_role_policy" "github_infra_kubernetes" {
-  name   = "${local.resource_name_prefix}-github-infra-k8s-policy"
-  role   = aws_iam_role.github["infra_kubernetes"].id
-  policy = data.aws_iam_policy_document.github_infra_kubernetes.json
+locals {
+  github_infra_kubernetes_policy_documents = {
+    plataforma = data.aws_iam_policy_document.github_infra_kubernetes_plataforma.json
+    servicos   = data.aws_iam_policy_document.github_infra_kubernetes_servicos.json
+    iam-roles  = data.aws_iam_policy_document.github_infra_kubernetes_iam_roles.json
+    iam-acesso = data.aws_iam_policy_document.github_infra_kubernetes_iam_acesso.json
+  }
+}
+
+resource "aws_iam_policy" "github_infra_kubernetes" {
+  for_each = local.github_infra_kubernetes_policy_documents
+
+  name   = "${local.resource_name_prefix}-github-infra-kubernetes-${each.key}"
+  policy = each.value
+}
+
+resource "aws_iam_role_policy_attachment" "github_infra_kubernetes" {
+  for_each = aws_iam_policy.github_infra_kubernetes
+
+  role       = aws_iam_role.github["infra_kubernetes"].name
+  policy_arn = each.value.arn
 }

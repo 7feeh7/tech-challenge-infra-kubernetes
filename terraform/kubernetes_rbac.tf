@@ -18,7 +18,7 @@ resource "kubernetes_role" "administracao_job_manager" {
 
   rule {
     api_groups = [""]
-    resources  = ["configmaps", "secrets"]
+    resources  = ["configmaps"]
     verbs      = ["get", "list", "watch", "create", "patch", "update", "delete"]
   }
 }
