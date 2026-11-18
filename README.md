@@ -64,7 +64,7 @@ flowchart TB
 | `api_gateway_url`         | URL pública da solução         |
 | `eks_cluster_name`        | kubectl / CI da aplicação      |
 | `ecr_repository_url`      | Push de imagem Docker          |
-| `datadog_dashboard_*_url` | Dashboards (outputs Terraform) |
+| `datadog_dashboard_*_url` | Dashboards, inclusive Saga da OS (outputs Terraform) |
 
 ## Estrutura
 
@@ -130,6 +130,10 @@ State S3 key: `tech-challenge-infra-kubernetes/producao/terraform.tfstate`
 1. Reverta o commit no GitHub e faca merge na branch alvo.
 2. O workflow `deploy.yml` aplicara o state anterior via Terraform.
 3. Para destroy controlado, use `workflow_dispatch` com action `destroy`.
+
+## Observabilidade
+
+Monitores, metricas de log, pipeline de logs e dashboards Datadog (inclusive Saga da OS), com limites, limitacoes e roteiro de verificacao da implantacao em [`docs/observabilidade.md`](docs/observabilidade.md).
 
 ## Custo e teardown
 

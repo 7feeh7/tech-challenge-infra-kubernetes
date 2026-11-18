@@ -108,3 +108,10 @@ output "datadog_dashboard_integracoes_url" {
     "https://app.${var.datadog_site}/dashboard/${datadog_dashboard.integracoes[0].id}"
   ) : null
 }
+
+output "datadog_dashboard_saga_os_url" {
+  description = "URL do dashboard Saga da OS Datadog."
+  value = length(datadog_dashboard.saga_os) > 0 ? nonsensitive(
+    "https://app.${var.datadog_site}/dashboard/${datadog_dashboard.saga_os[0].id}"
+  ) : null
+}

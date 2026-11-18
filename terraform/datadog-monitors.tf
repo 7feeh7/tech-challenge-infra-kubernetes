@@ -1,9 +1,34 @@
 locals {
+  # for_each nao aceita valor sensivel; o booleano derivado da chave nao revela a chave.
+  datadog_habilitado = nonsensitive(var.datadog_app_key != "")
+
   dd_monitor_tags = [
     "env:${var.environment}",
     "service:${local.dd_service}",
     "team:tech-challenge",
   ]
+
+  # Nomes das filas e DLQs seguem <projeto>-<ambiente>-...; Billing, Execution e OS criam as suas nos proprios repositorios.
+  prefixo_filas = "${var.project_name}-${var.environment}"
+
+  filas_monitoradas = {
+    notificacao = {
+      fila = "${local.prefixo_filas}-notificacao-status"
+      dlq  = "${local.prefixo_filas}-notificacao-status-dlq"
+    }
+    os = {
+      fila = "${local.prefixo_filas}-os-in"
+      dlq  = "${local.prefixo_filas}-os-in-dlq"
+    }
+    billing = {
+      fila = "${local.prefixo_filas}-billing-in"
+      dlq  = "${local.prefixo_filas}-billing-in-dlq"
+    }
+    execution = {
+      fila = "${local.prefixo_filas}-execution-in"
+      dlq  = "${local.prefixo_filas}-execution-in-dlq"
+    }
+  }
 }
 
 resource "datadog_monitor" "os_transicao_falha" {
@@ -227,17 +252,17 @@ resource "datadog_monitor" "lambda_notificacao_errors" {
 }
 
 resource "datadog_monitor" "sqs_backlog" {
-  count = var.datadog_app_key != "" ? 1 : 0
+  for_each = local.datadog_habilitado ? local.filas_monitoradas : {}
 
-  name    = "[Tech Challenge] Backlog SQS notificacao"
+  name    = "[Tech Challenge] Backlog SQS ${each.key}"
   type    = "query alert"
   message = <<-EOT
-    Backlog da fila de notificacao acima do limiar.
+    Backlog da fila de ${each.key} acima do limiar.
 
     ${var.datadog_alert_recipients}
   EOT
 
-  query = "avg(last_5m):avg:aws.sqs.approximate_number_of_messages_visible{queuename:${var.project_name}-${var.environment}-notificacao-status} > ${var.alarm_sqs_backlog_count}"
+  query = "avg(last_5m):avg:aws.sqs.approximate_number_of_messages_visible{queuename:${each.value.fila}} > ${var.alarm_sqs_backlog_count}"
 
   monitor_thresholds {
     critical = var.alarm_sqs_backlog_count
@@ -247,21 +272,21 @@ resource "datadog_monitor" "sqs_backlog" {
   notify_no_data    = false
   renotify_interval = 30
   include_tags      = true
-  tags              = local.dd_monitor_tags
+  tags              = concat(local.dd_monitor_tags, ["servico:${each.key}"])
 }
 
 resource "datadog_monitor" "sqs_age" {
-  count = var.datadog_app_key != "" ? 1 : 0
+  for_each = local.datadog_habilitado ? local.filas_monitoradas : {}
 
-  name    = "[Tech Challenge] Idade SQS notificacao"
+  name    = "[Tech Challenge] Idade SQS ${each.key}"
   type    = "query alert"
   message = <<-EOT
-    Mensagem mais antiga na fila excedeu o limiar.
+    Mensagem mais antiga na fila de ${each.key} excedeu o limiar.
 
     ${var.datadog_alert_recipients}
   EOT
 
-  query = "avg(last_5m):avg:aws.sqs.approximate_age_of_oldest_message{queuename:${var.project_name}-${var.environment}-notificacao-status} > ${var.alarm_sqs_age_seconds}"
+  query = "avg(last_5m):avg:aws.sqs.approximate_age_of_oldest_message{queuename:${each.value.fila}} > ${var.alarm_sqs_age_seconds}"
 
   monitor_thresholds {
     critical = var.alarm_sqs_age_seconds
@@ -271,21 +296,21 @@ resource "datadog_monitor" "sqs_age" {
   notify_no_data    = false
   renotify_interval = 30
   include_tags      = true
-  tags              = local.dd_monitor_tags
+  tags              = concat(local.dd_monitor_tags, ["servico:${each.key}"])
 }
 
 resource "datadog_monitor" "sqs_dlq" {
-  count = var.datadog_app_key != "" ? 1 : 0
+  for_each = local.datadog_habilitado ? local.filas_monitoradas : {}
 
-  name    = "[Tech Challenge] Mensagens na DLQ"
+  name    = "[Tech Challenge] Mensagens na DLQ ${each.key}"
   type    = "query alert"
   message = <<-EOT
-    Mensagens visiveis na DLQ de notificacao.
+    Mensagens visiveis na DLQ de ${each.key}. A mensagem esgotou as tentativas ou teve erro permanente e precisa de analise e reenvio manual.
 
     ${var.datadog_alert_recipients}
   EOT
 
-  query = "avg(last_5m):avg:aws.sqs.approximate_number_of_messages_visible{queuename:${var.project_name}-${var.environment}-notificacao-status-dlq} > 0"
+  query = "avg(last_5m):avg:aws.sqs.approximate_number_of_messages_visible{queuename:${each.value.dlq}} > 0"
 
   monitor_thresholds {
     critical = 0
@@ -294,7 +319,7 @@ resource "datadog_monitor" "sqs_dlq" {
   notify_no_data    = false
   renotify_interval = 15
   include_tags      = true
-  tags              = local.dd_monitor_tags
+  tags              = concat(local.dd_monitor_tags, ["servico:${each.key}"])
 }
 
 resource "datadog_monitor" "integracao_falha" {
