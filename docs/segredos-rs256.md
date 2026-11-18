@@ -78,3 +78,32 @@ Nenhuma IRSA de aplicacao le Secrets Manager (D6.5). Somente pipelines (roles `g
 ## CI do infra-kubernetes
 
 A role de CI do `infra-kubernetes` so gerencia os conteineres de `jwt-*`, `token-*` e `sendgrid-*` (criar, descrever, etiquetar, excluir) e nao tem `GetSecretValue`, `PutSecretValue` nem `PutResourcePolicy` neles. Leitura e gravacao de valor ficam so no `sendgrid-*`, que o Terraform grava (`aws_secretsmanager_secret_version.sendgrid_api_key`).
+
+## Fronteira de confianca
+
+A fronteira de cada segredo critico e o conjunto de pipelines e roles que, **por responsabilidade legitima de deploy**, ja chegam ao segredo. Quem esta dentro e aceito; quem esta fora nao o alcanca nem por escalada via IAM. O isolamento tem duas camadas, definidas em `terraform/bootstrap/`:
+
+- **Boundary `boundary-workload`** (`permissions-boundaries.tf`): teto das quatro IRSAs (`-os-service`, `-billing-service`, `-execution-service`, `-db-admin-job`) e das duas roles de Lambda (`-lambda-role`, `-lambda-notificacao-role`). Tem `Deny` de `GetSecretValue` e `DescribeSecret` em `jwt-private-*` para qualquer role com a boundary workload que nao seja `-lambda-role`, e em `db-credentials-*` para qualquer role com a boundary workload que nao seja `-db-admin-job`. Como `Deny` vale mesmo com `Allow` em policy inline, nenhuma policy que uma CI anexe a uma dessas roles chega aos segredos. O `Deny` so vale para roles que carregam essa boundary.
+- **Deny comum das CIs** (`ci_security_deny.tf`): nenhuma CI altera as boundaries nem as policies gerenciadas `policy/<prefixo>-github-*` (as proprias restricoes; o padrao cobre tambem policies gerenciadas futuras das CIs), remove boundary de role, nega `PassRole` e mutacao (trust, policies, tags, boundary, exclusao) das roles `-github-*` e muda o provedor OIDC do GitHub. `sts:AssumeRole` e negado apenas na CI do `infra-kubernetes` (`NegarStsAssumeRole`).
+
+A CI do `infra-kubernetes` tambem fica limitada em `iam:PassRole` (pares role e servico: Lambdas so a `lambda.amazonaws.com`; roles do cluster e dos nos so a `eks.amazonaws.com`; IRSAs a nenhum servico), em `lambda:*` (so as funcoes `auth-cpf` e `notificacao`), em SSM (so os ARNs exatos publicados por `terraform/ssm.tf`) e nao faz push de imagem no ECR.
+
+| Segredo | Dentro da fronteira | Por que |
+| --- | --- | --- |
+| Chave privada JWT (`jwt-private-*`) | Role `-lambda-role` da `auth-cpf` (runtime) | Assina o token na Function |
+| | CI do `OS` | Le o valor para injetar na aplicacao |
+| | CI do `serverless` | Publica o codigo da `auth-cpf` (`UpdateFunctionCode`), que executa com acesso ao segredo |
+| | CI do `infra-kubernetes` | Cria o conteiner do segredo, a role e a funcao da `auth-cpf`; e admin do cluster |
+| Segredo master do banco (`db-credentials-*`) | IRSA `-db-admin-job` (runtime do Job) | Cria os usuarios do banco |
+| | CI do `infra-database` | Cria o conteiner e grava o valor |
+| | CI do `infra-kubernetes` | Admin do cluster e dona da role e da trust do Job |
+
+**Fora da fronteira, por dois mecanismos distintos:**
+
+- **Negado mesmo com policy concedendo** (`Deny` da boundary workload): IRSAs de OS, Billing e Execution; role da Lambda de notificacao; `-lambda-role` em `db-credentials-*`; `-db-admin-job` em `jwt-private-*`.
+- **Fora por ausencia de `Allow`** (nao ha `Deny`): CIs do Billing e do Execution (as identity policies nao incluem esses segredos); Cluster Autoscaler, role do cluster e role dos nos (a `boundary-plataforma` nao libera `secretsmanager`).
+
+**Limites conhecidos.**
+
+- O caminho via administracao do cluster (admin do EKS pode executar um pod com a service account do Job `db-admin-job` e assumir a IRSA) e inerente a responsabilidade da CI do `infra-kubernetes` e nao e fechado por boundary. O mesmo vale para publicar codigo na `auth-cpf` (CIs do `serverless` e do `infra-kubernetes`). Por isso essas CIs constam na tabela como pertencentes a fronteira.
+- O `PassRole` das duas roles de Lambda nao e vinculado a uma funcao especifica: a CI do `infra-kubernetes` poderia trocar a role da `notificacao` para a `-lambda-role` e publicar codigo nela. Isso fica dentro da fronteira ja declarada para essa CI (limitacao inerente ao IAM, que nao condiciona `PassRole` a funcao de destino).

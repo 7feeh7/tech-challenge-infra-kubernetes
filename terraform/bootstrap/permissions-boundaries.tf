@@ -50,6 +50,30 @@ resource "aws_iam_policy" "boundary_workload" {
         ]
         Resource = "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:${local.secret_path_prefix}/*"
       },
+      # Negar vale mais que permitir: nenhuma policy anexada a uma role workload (inclusive pela CI) alcanca estes
+      # segredos, que so tem um consumidor de runtime legitimo cada.
+      {
+        Sid      = "NegarChavePrivadaJwtForaDaAuthCpf"
+        Effect   = "Deny"
+        Action   = ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"]
+        Resource = "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:${local.secret_path_prefix}/jwt-private-*"
+        Condition = {
+          ArnNotEquals = {
+            "aws:PrincipalArn" = local.lambda_auth_role_arn
+          }
+        }
+      },
+      {
+        Sid      = "NegarSegredoMasterBancoForaDoJobAdmin"
+        Effect   = "Deny"
+        Action   = ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"]
+        Resource = "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:${local.secret_path_prefix}/db-credentials-*"
+        Condition = {
+          ArnNotEquals = {
+            "aws:PrincipalArn" = local.db_admin_job_role_arn
+          }
+        }
+      },
       {
         Sid      = "KmsViaServico"
         Effect   = "Allow"
