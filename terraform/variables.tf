@@ -155,22 +155,22 @@ variable "api_log_retention_days" {
   default     = 14
 }
 
-variable "sendgrid_api_key" {
-  description = "Chave da API SendGrid consumida pela Lambda de notificacao."
+variable "resend_api_key" {
+  description = "Chave da API Resend consumida pela Lambda de notificacao."
   type        = string
   sensitive   = true
 }
 
-variable "sendgrid_from_email" {
-  description = "Remetente verificado no SendGrid."
+variable "resend_from_email" {
+  description = "Remetente de dominio verificado no Resend."
   type        = string
 
   validation {
     condition = (
-      can(regex("^[^@[:space:]]+@[^@[:space:]]+[.][^@[:space:]]+$", var.sendgrid_from_email))
-      && !endswith(lower(var.sendgrid_from_email), "@seu-dominio.com")
+      can(regex("^[^@[:space:]]+@[^@[:space:]]+[.][^@[:space:]]+$", var.resend_from_email))
+      && !endswith(lower(var.resend_from_email), "@seu-dominio.com")
     )
-    error_message = "sendgrid_from_email e obrigatorio e deve ser um e-mail valido, diferente do placeholder de exemplo. Em CI, defina a variable SENDGRID_FROM_EMAIL do repositorio no GitHub com o remetente verificado no SendGrid."
+    error_message = "resend_from_email e obrigatorio e deve ser um e-mail valido, diferente do placeholder de exemplo. Em CI, defina a variable RESEND_FROM_EMAIL do repositorio no GitHub com o remetente de um dominio verificado no Resend."
   }
 }
 

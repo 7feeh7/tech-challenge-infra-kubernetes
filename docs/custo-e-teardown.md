@@ -20,7 +20,7 @@ Documento de referencia operacional para o ambiente unico (`producao`) da Fase 3
 
 ## Preservar antes de destruir
 
-1. Exportar outputs SSM ou anotar ARNs usados por integracao externa (SendGrid, dominio).
+1. Exportar outputs SSM ou anotar ARNs usados por integracao externa (Resend, dominio).
 2. Backup final do RDS (`tech-challenge-infra-database`) se houver dados a manter.
 3. Confirmar que nenhum deploy concorrente esta em execucao (concurrency groups dos workflows).
 

@@ -85,8 +85,8 @@ resource "aws_iam_role_policy" "lambda_notificacao_sqs" {
   })
 }
 
-resource "aws_iam_role_policy" "lambda_notificacao_sendgrid_secret" {
-  name = "${var.project_name}-${var.environment}-lambda-notificacao-sendgrid"
+resource "aws_iam_role_policy" "lambda_notificacao_resend_secret" {
+  name = "${var.project_name}-${var.environment}-lambda-notificacao-resend"
   role = aws_iam_role.lambda_notificacao_execution.id
 
   policy = jsonencode({
@@ -98,7 +98,7 @@ resource "aws_iam_role_policy" "lambda_notificacao_sendgrid_secret" {
           "secretsmanager:GetSecretValue",
           "secretsmanager:DescribeSecret"
         ]
-        Resource = [aws_secretsmanager_secret.sendgrid_api_key.arn]
+        Resource = [aws_secretsmanager_secret.resend_api_key.arn]
       }
     ]
   })

@@ -50,7 +50,7 @@ Prefixo: `/tech-challenge/producao/infra/`
 | `eks_nlb_dns_name` | Lambda `auth-cpf` (`OS_SERVICE_BASE_URL`, montada no proprio stack), troubleshooting |
 | `eks_node_group_asg_name` | troubleshooting (E07) |
 | `eks_oidc_provider_arn` | troubleshooting e futuras IRSAs (E07) |
-| `sendgrid_secret_arn` | troubleshooting |
+| `resend_secret_arn` | troubleshooting |
 | `sqs_notificacao_queue_url` | troubleshooting |
 | `sqs_notificacao_dlq_url` | troubleshooting DLQ |
 

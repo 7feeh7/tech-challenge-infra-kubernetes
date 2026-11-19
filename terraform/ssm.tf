@@ -82,10 +82,10 @@ resource "aws_ssm_parameter" "sqs_notificacao_dlq_url" {
   value = aws_sqs_queue.notificacao_status_dlq.url
 }
 
-resource "aws_ssm_parameter" "sendgrid_secret_arn" {
-  name  = "${local.ssm_prefix}/infra/sendgrid_secret_arn"
+resource "aws_ssm_parameter" "resend_secret_arn" {
+  name  = "${local.ssm_prefix}/infra/resend_secret_arn"
   type  = "String"
-  value = aws_secretsmanager_secret.sendgrid_api_key.arn
+  value = aws_secretsmanager_secret.resend_api_key.arn
 }
 
 resource "aws_ssm_parameter" "jwt_secret_arn" {

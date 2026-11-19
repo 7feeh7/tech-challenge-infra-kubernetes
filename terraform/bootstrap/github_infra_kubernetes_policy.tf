@@ -1,11 +1,11 @@
 locals {
   infra_kubernetes_secret_arns = [
     "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:${local.secret_path_prefix}/jwt-*",
-    "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:${local.secret_path_prefix}/sendgrid-*",
+    "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:${local.secret_path_prefix}/resend-*",
     "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:${local.secret_path_prefix}/token-*",
   ]
 
-  infra_kubernetes_sendgrid_secret_arn = "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:${local.secret_path_prefix}/sendgrid-*"
+  infra_kubernetes_resend_secret_arn = "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:${local.secret_path_prefix}/resend-*"
 
   infra_stack_sqs_arns = [
     "arn:aws:sqs:${var.aws_region}:${local.account_id}:${local.resource_name_prefix}-notificacao-status",
@@ -56,7 +56,7 @@ locals {
     "private_subnet_ids",
     "public_subnet_ids",
     "rds_access_security_group_id",
-    "sendgrid_secret_arn",
+    "resend_secret_arn",
     "sns_notificacao_topic_arn",
     "sqs_notificacao_dlq_url",
     "sqs_notificacao_queue_url",
@@ -352,7 +352,7 @@ data "aws_iam_policy_document" "github_infra_kubernetes_servicos" {
     resources = ["*"]
   }
 
-  # Conteineres de jwt-*, token-* e sendgrid-*: a stack nao define aws_secretsmanager_secret_policy, e
+  # Conteineres de jwt-*, token-* e resend-*: a stack nao define aws_secretsmanager_secret_policy, e
   # PutResourcePolicy permitiria conceder a si mesmo a leitura da chave privada e dos tokens.
   statement {
     sid    = "SecretsInfraKubernetes"
@@ -369,15 +369,15 @@ data "aws_iam_policy_document" "github_infra_kubernetes_servicos" {
     resources = local.infra_kubernetes_secret_arns
   }
 
-  # Valor so do SendGrid, gravado e lido pelo aws_secretsmanager_secret_version.sendgrid_api_key.
+  # Valor so do Resend, gravado e lido pelo aws_secretsmanager_secret_version.resend_api_key.
   statement {
-    sid    = "SecretsInfraKubernetesSendgridValor"
+    sid    = "SecretsInfraKubernetesResendValor"
     effect = "Allow"
     actions = [
       "secretsmanager:GetSecretValue",
       "secretsmanager:PutSecretValue",
     ]
-    resources = [local.infra_kubernetes_sendgrid_secret_arn]
+    resources = [local.infra_kubernetes_resend_secret_arn]
   }
 
   statement {

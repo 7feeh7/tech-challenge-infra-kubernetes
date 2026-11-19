@@ -77,7 +77,7 @@ Nenhuma IRSA de aplicacao le Secrets Manager (D6.5). Somente pipelines (roles `g
 
 ## CI do infra-kubernetes
 
-A role de CI do `infra-kubernetes` so gerencia os conteineres de `jwt-*`, `token-*` e `sendgrid-*` (criar, descrever, etiquetar, excluir) e nao tem `GetSecretValue`, `PutSecretValue` nem `PutResourcePolicy` neles. Leitura e gravacao de valor ficam so no `sendgrid-*`, que o Terraform grava (`aws_secretsmanager_secret_version.sendgrid_api_key`).
+A role de CI do `infra-kubernetes` so gerencia os conteineres de `jwt-*`, `token-*` e `resend-*` (criar, descrever, etiquetar, excluir) e nao tem `GetSecretValue`, `PutSecretValue` nem `PutResourcePolicy` neles. Leitura e gravacao de valor ficam so no `resend-*`, que o Terraform grava (`aws_secretsmanager_secret_version.resend_api_key`).
 
 ## Fronteira de confianca
 

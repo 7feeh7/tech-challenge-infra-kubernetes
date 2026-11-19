@@ -194,7 +194,7 @@ resource "datadog_dashboard" "integracoes" {
   count = var.datadog_app_key != "" ? 1 : 0
 
   title       = "Tech Challenge - Integracoes"
-  description = "Erros e latencia de PostgreSQL, SNS/SQS, SendGrid, Secrets Manager e Functions."
+  description = "Erros e latencia de PostgreSQL, SNS/SQS, Resend, Secrets Manager e Functions."
   layout_type = "ordered"
 
   template_variable {
