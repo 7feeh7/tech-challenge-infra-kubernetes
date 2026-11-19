@@ -20,14 +20,14 @@ Variable ausente ou fora do formato: o `plan` falha na validacao da variavel, an
 
 O codigo nao referencia mais `user/github-actions`, usuario que nenhum Terraform cria.
 
-## Remetente do SendGrid
+## Remetente do Resend
 
 | Origem | Nome |
 | --- | --- |
-| GitHub Variable | `SENDGRID_FROM_EMAIL` |
-| Variavel Terraform | `sendgrid_from_email` (sem valor padrao) |
+| GitHub Variable | `RESEND_FROM_EMAIL` |
+| Variavel Terraform | `resend_from_email` (sem valor padrao) |
 
-A validacao recusa valor ausente, e-mail malformado e o dominio de exemplo `seu-dominio.com`. O remetente precisa estar verificado no SendGrid, ou o envio e recusado em runtime.
+A validacao recusa valor ausente, e-mail malformado e o dominio de exemplo `seu-dominio.com`. O Resend exige dominio verificado no painel do Resend para enviar a qualquer destinatario; sem dominio, `onboarding@resend.dev` so entrega no e-mail do dono da conta.
 
 ## Backend de state e `s3:ListBucket`
 

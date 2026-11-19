@@ -66,9 +66,9 @@ resource "aws_lambda_function" "notificacao" {
 
   environment {
     variables = {
-      NODE_ENV            = var.environment
-      SENDGRID_SECRET_ARN = aws_secretsmanager_secret.sendgrid_api_key.arn
-      SENDGRID_FROM_EMAIL = var.sendgrid_from_email
+      NODE_ENV          = var.environment
+      RESEND_SECRET_ARN = aws_secretsmanager_secret.resend_api_key.arn
+      RESEND_FROM_EMAIL = var.resend_from_email
     }
   }
 

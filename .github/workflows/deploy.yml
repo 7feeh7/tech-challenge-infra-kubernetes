@@ -80,8 +80,8 @@ jobs:
           terraform plan -no-color \
             -var="environment=${{ env.TF_ENVIRONMENT }}" \
             -var="lambda_s3_bucket=${{ secrets.LAMBDA_ARTIFACTS_BUCKET }}" \
-            -var="sendgrid_api_key=${{ secrets.SENDGRID_API_KEY }}" \
-            -var="sendgrid_from_email=${{ vars.SENDGRID_FROM_EMAIL }}" \
+            -var="resend_api_key=${{ secrets.RESEND_API_KEY }}" \
+            -var="resend_from_email=${{ vars.RESEND_FROM_EMAIL }}" \
             -var="operador_principal_arn=${{ vars.OPERADOR_PRINCIPAL_ARN }}" \
             -var="datadog_api_key=${{ secrets.DATADOG_API_KEY }}" \
             -var="datadog_app_key=${{ secrets.DATADOG_APP_KEY }}" \
@@ -105,8 +105,8 @@ jobs:
           terraform destroy -auto-approve \
             -var="environment=${{ env.TF_ENVIRONMENT }}" \
             -var="lambda_s3_bucket=${{ secrets.LAMBDA_ARTIFACTS_BUCKET }}" \
-            -var="sendgrid_api_key=${{ secrets.SENDGRID_API_KEY }}" \
-            -var="sendgrid_from_email=${{ vars.SENDGRID_FROM_EMAIL }}" \
+            -var="resend_api_key=${{ secrets.RESEND_API_KEY }}" \
+            -var="resend_from_email=${{ vars.RESEND_FROM_EMAIL }}" \
             -var="operador_principal_arn=${{ vars.OPERADOR_PRINCIPAL_ARN }}" \
             -var="datadog_api_key=${{ secrets.DATADOG_API_KEY }}" \
             -var="datadog_app_key=${{ secrets.DATADOG_APP_KEY }}"

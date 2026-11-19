@@ -40,7 +40,7 @@ skip-check:
   # Lambda academica.
   - CKV_AWS_272 # code signing
   - CKV_AWS_116 # DLQ na Lambda de auth (notificacao ja tem SQS+DLQ)
-  - CKV_AWS_117 # Lambda notificacao fora de VPC (SNS/SQS/SendGrid)
+  - CKV_AWS_117 # Lambda notificacao fora de VPC (SNS/SQS/Resend)
 
   # SSM de contrato — IDs/ARNs, nao segredos.
   - CKV2_AWS_34
@@ -50,4 +50,4 @@ skip-check:
   - CKV_TF_1 # modulos EKS/VPC por versao, sem hash de commit
   - CKV2_AWS_5 # SGs nlb/rds_access (NLB nao anexa SG; RDS no outro repo)
   - CKV2_AWS_15 # health check ELB no ASG do node group gerenciado
-  - CKV2_AWS_57 # rotacao automatica; JWT/SendGrid injetados no apply
+  - CKV2_AWS_57 # rotacao automatica; JWT/Resend injetados no apply

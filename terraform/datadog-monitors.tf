@@ -328,7 +328,7 @@ resource "datadog_monitor" "integracao_falha" {
   name    = "[Tech Challenge] Falhas de integracao"
   type    = "query alert"
   message = <<-EOT
-    Falhas em integracoes externas (PostgreSQL, SNS, SendGrid, etc.).
+    Falhas em integracoes externas (PostgreSQL, SNS, Resend, etc.).
 
     ${var.datadog_alert_recipients}
   EOT
