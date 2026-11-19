@@ -236,3 +236,21 @@ resource "aws_ssm_parameter" "eks_node_security_group_id" {
   type  = "String"
   value = module.eks.node_security_group_id
 }
+
+resource "aws_ssm_parameter" "api_gateway_id" {
+  name  = "${local.ssm_prefix}/infra/api_gateway_id"
+  type  = "String"
+  value = aws_apigatewayv2_api.main.id
+}
+
+resource "aws_ssm_parameter" "eks_node_group_asg_name" {
+  name  = "${local.ssm_prefix}/infra/eks_node_group_asg_name"
+  type  = "String"
+  value = local.asg_nos_eks
+}
+
+resource "aws_ssm_parameter" "eks_oidc_provider_arn" {
+  name  = "${local.ssm_prefix}/infra/eks_oidc_provider_arn"
+  type  = "String"
+  value = module.eks.oidc_provider_arn
+}

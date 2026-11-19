@@ -3,15 +3,18 @@ resource "aws_security_group" "lambda" {
   description = "Security group for Lambda functions"
   vpc_id      = module.vpc.vpc_id
 
+  # O NLB nao tem security group (D6.4), entao a saida e liberada para as subnets privadas onde ele vive, so na porta
+  # do listener do OS. A auth-cpf nao acessa mais o banco: consulta o cliente pela rota interna do OS.
   egress {
-    from_port   = 5432
-    to_port     = 5432
+    from_port   = local.servicos_borda.os.porta_listener
+    to_port     = local.servicos_borda.os.porta_listener
     protocol    = "tcp"
-    cidr_blocks = [var.vpc_cidr]
-    description = "PostgreSQL access to RDS"
+    cidr_blocks = module.vpc.private_subnets_cidr_blocks
+    description = "HTTP to internal NLB (OS)"
   }
 
-  # Secrets Manager e demais APIs AWS via NAT Gateway (sem VPC endpoints por custo).
+  # Secrets Manager e DynamoDB (rate limit) via NAT Gateway, sem VPC endpoints por custo. Os enderecos das APIs AWS
+  # mudam, entao o destino nao pode ser restringido por CIDR.
   egress {
     from_port   = 443
     to_port     = 443
@@ -77,4 +80,17 @@ resource "aws_security_group_rule" "eks_nodes_nodeport_ingress" {
   cidr_blocks       = [var.vpc_cidr]
   security_group_id = module.eks.node_security_group_id
   description       = "Allow NLB health checks and traffic via NodePort"
+}
+
+# Billing e Execution: a NodePort recebe o trafego do NLB e os health checks do target group, ambos com origem na VPC.
+resource "aws_security_group_rule" "eks_nodes_nodeport_servico_ingress" {
+  for_each = local.servicos_borda_aditivos
+
+  type              = "ingress"
+  from_port         = each.value.node_port
+  to_port           = each.value.node_port
+  protocol          = "tcp"
+  cidr_blocks       = [var.vpc_cidr]
+  security_group_id = module.eks.node_security_group_id
+  description       = "Allow NLB health checks and traffic via NodePort (${each.key})"
 }

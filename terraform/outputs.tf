@@ -88,6 +88,11 @@ output "eks_nlb_dns_name" {
   value       = aws_lb.eks_internal.dns_name
 }
 
+output "servicos_borda" {
+  description = "Porta do listener do NLB, NodePort e rotas do API Gateway por servico."
+  value       = local.servicos_borda
+}
+
 output "datadog_dashboard_tecnico_url" {
   description = "URL do dashboard tecnico Datadog."
   value = length(datadog_dashboard.tecnico) > 0 ? nonsensitive(
