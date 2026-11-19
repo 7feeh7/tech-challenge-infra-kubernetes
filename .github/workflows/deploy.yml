@@ -94,14 +94,6 @@ jobs:
           fi
         working-directory: terraform
 
-      - name: Upload plan artifact
-        if: github.event_name == 'push' || github.event.inputs.action == 'apply'
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-plan-${{ github.sha }}
-          path: terraform/tfplan
-          retention-days: 30
-
       - name: Terraform Apply
         if: github.event_name == 'push' || github.event.inputs.action == 'apply'
         run: terraform apply -auto-approve tfplan
