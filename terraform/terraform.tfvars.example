@@ -2,8 +2,14 @@ aws_region         = "us-east-1"
 environment        = "producao"   # unico ambiente provisionado (001-R1)
 project_name       = "tech-challenge"
 vpc_cidr           = "10.0.0.0/16"
-kubernetes_version = "1.31"
+kubernetes_version = "1.37"
 lambda_s3_bucket   = "tech-challenge-lambda-artifacts-producao"
+
+# Obrigatorios, sem valor padrao. No CI vem das variables do GitHub OPERADOR_PRINCIPAL_ARN e SENDGRID_FROM_EMAIL.
+# operador_principal_arn: usuario ou role IAM do autor, com acesso administrador ao EKS e a chave KMS do cluster.
+operador_principal_arn = "arn:aws:iam::<ID_DA_CONTA>:user/<NOME_DO_OPERADOR>"
+# sendgrid_from_email: remetente ja verificado no SendGrid (nao aceita o dominio de exemplo seu-dominio.com).
+sendgrid_from_email = "<REMETENTE_VERIFICADO_NO_SENDGRID>"
 
 # jwt_secret obsoleto (E08): chaves RS256 gravadas no Secrets Manager pelo autor (runbook 4.1).
 

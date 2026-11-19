@@ -79,6 +79,18 @@ locals {
   infra_stack_dynamodb_arns = [
     "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${local.resource_name_prefix}-auth-cpf-rate",
   ]
+
+  # ARN das assinaturas SNS e <topico>:<uuid>, que nao casa com o ARN exato do topico.
+  infra_stack_sns_subscription_arns = [for arn in local.infra_stack_sns_arns : "${arn}:*"]
+
+  # O UUID do event source mapping so existe depois da criacao, por isso o curinga. O alcance sobre as funcoes fica na
+  # condicao lambda:FunctionArn do statement de criacao.
+  infra_stack_event_source_mapping_arn = "arn:aws:lambda:${var.aws_region}:${local.account_id}:event-source-mapping:*"
+
+  infra_stack_lambda_artifacts_bucket_arn = "arn:aws:s3:::${var.lambda_s3_bucket}"
+
+  # Policy criada pelo modulo EKS (attach_cluster_encryption_policy) com nome <role do cluster>-ClusterEncryption<sufixo>.
+  cluster_encryption_policy_arn = "arn:aws:iam::${local.account_id}:policy/${local.cluster_name}-ClusterEncryption*"
 }
 
 # Policy de apply do stack EKS/Gateway, dividida em policies gerenciadas por afinidade (limite de 10.240 caracteres
@@ -111,7 +123,10 @@ data "aws_iam_policy_document" "github_infra_kubernetes_plataforma" {
       "dynamodb:DeleteTable",
       "dynamodb:DescribeTable",
       "dynamodb:UpdateTable",
+      "dynamodb:DescribeTimeToLive",
       "dynamodb:UpdateTimeToLive",
+      "dynamodb:DescribeContinuousBackups",
+      "dynamodb:UpdateContinuousBackups",
       "dynamodb:TagResource",
       "dynamodb:UntagResource",
       "dynamodb:ListTagsOfResource",
@@ -234,6 +249,18 @@ data "aws_iam_policy_document" "github_infra_kubernetes_servicos" {
     resources = local.infra_stack_sns_arns
   }
 
+  # Atributos e remocao da aws_sns_topic_subscription: o recurso dessas acoes e a assinatura, nao o topico.
+  statement {
+    sid    = "SnsAssinaturaStack"
+    effect = "Allow"
+    actions = [
+      "sns:GetSubscriptionAttributes",
+      "sns:SetSubscriptionAttributes",
+      "sns:Unsubscribe",
+    ]
+    resources = local.infra_stack_sns_subscription_arns
+  }
+
   statement {
     # ecr:GetAuthorizationToken exige Resource * (documentacao AWS).
     sid       = "EcrAuthToken"
@@ -252,9 +279,13 @@ data "aws_iam_policy_document" "github_infra_kubernetes_servicos" {
       "ecr:DescribeRepositories",
       "ecr:CreateRepository",
       "ecr:DeleteRepository",
+      "ecr:GetLifecyclePolicy",
       "ecr:PutLifecyclePolicy",
+      "ecr:DeleteLifecyclePolicy",
       "ecr:SetRepositoryPolicy",
       "ecr:TagResource",
+      "ecr:UntagResource",
+      "ecr:ListTagsForResource",
       "ecr:ListImages",
     ]
     resources = local.infra_stack_ecr_arns
@@ -273,16 +304,52 @@ data "aws_iam_policy_document" "github_infra_kubernetes_servicos" {
       "lambda:PublishVersion",
       "lambda:AddPermission",
       "lambda:RemovePermission",
+      "lambda:GetPolicy",
+      "lambda:PutFunctionConcurrency",
+      "lambda:GetFunctionConcurrency",
+      "lambda:DeleteFunctionConcurrency",
+      "lambda:ListVersionsByFunction",
+      "lambda:GetFunctionCodeSigningConfig",
+      "lambda:GetFunctionRecursionConfig",
       "lambda:TagResource",
       "lambda:UntagResource",
       "lambda:ListTags",
-      "lambda:CreateEventSourceMapping",
-      "lambda:DeleteEventSourceMapping",
-      "lambda:GetEventSourceMapping",
-      "lambda:UpdateEventSourceMapping",
-      "lambda:ListEventSourceMappings",
     ]
     resources = local.infra_stack_lambda_arns
+  }
+
+  # As acoes de event source mapping exigem o ARN event-source-mapping:*, nao o da funcao.
+  statement {
+    sid    = "LambdaEventSourceMappingCriacao"
+    effect = "Allow"
+    actions = [
+      "lambda:CreateEventSourceMapping",
+      "lambda:UpdateEventSourceMapping",
+    ]
+    resources = [local.infra_stack_event_source_mapping_arn]
+    condition {
+      test     = "ArnEquals"
+      variable = "lambda:FunctionArn"
+      values   = [local.lambda_noti_arn]
+    }
+  }
+
+  statement {
+    sid    = "LambdaEventSourceMappingLeituraERemocao"
+    effect = "Allow"
+    actions = [
+      "lambda:GetEventSourceMapping",
+      "lambda:DeleteEventSourceMapping",
+    ]
+    resources = [local.infra_stack_event_source_mapping_arn]
+  }
+
+  statement {
+    # O IAM nao aceita restricao de recurso em lambda:ListEventSourceMappings.
+    sid       = "LambdaListEventSourceMappings"
+    effect    = "Allow"
+    actions   = ["lambda:ListEventSourceMappings"]
+    resources = ["*"]
   }
 
   # Conteineres de jwt-*, token-* e sendgrid-*: a stack nao define aws_secretsmanager_secret_policy, e
@@ -340,6 +407,50 @@ data "aws_iam_policy_document" "github_infra_kubernetes_servicos" {
     resources = [
       "arn:aws:s3:::${var.lambda_s3_bucket}",
     ]
+  }
+
+  # Criacao e configuracao do bucket (s3.tf), mais as leituras que o provider AWS faz em todo refresh de aws_s3_bucket.
+  statement {
+    sid    = "S3LambdaArtifactsBucket"
+    effect = "Allow"
+    actions = [
+      "s3:CreateBucket",
+      "s3:DeleteBucket",
+      "s3:PutBucketVersioning",
+      "s3:GetBucketVersioning",
+      "s3:PutEncryptionConfiguration",
+      "s3:GetEncryptionConfiguration",
+      "s3:PutBucketPublicAccessBlock",
+      "s3:GetBucketPublicAccessBlock",
+      "s3:PutBucketTagging",
+      "s3:GetBucketTagging",
+      "s3:GetBucketAcl",
+      "s3:GetBucketCORS",
+      "s3:GetBucketWebsite",
+      "s3:GetBucketLogging",
+      "s3:GetLifecycleConfiguration",
+      "s3:GetReplicationConfiguration",
+      "s3:GetBucketRequestPayment",
+      "s3:GetAccelerateConfiguration",
+      "s3:GetBucketObjectLockConfiguration",
+      "s3:GetBucketOwnershipControls",
+      "s3:ListBucketVersions",
+    ]
+    resources = [local.infra_stack_lambda_artifacts_bucket_arn]
+  }
+
+  # Placeholders das Lambdas (aws_s3_object): versoes e tags de objeto (default_tags do provider).
+  statement {
+    sid    = "S3LambdaArtifactsObjetos"
+    effect = "Allow"
+    actions = [
+      "s3:GetObjectVersion",
+      "s3:DeleteObjectVersion",
+      "s3:GetObjectTagging",
+      "s3:PutObjectTagging",
+      "s3:DeleteObjectTagging",
+    ]
+    resources = ["${local.infra_stack_lambda_artifacts_bucket_arn}/*"]
   }
 }
 
@@ -474,6 +585,43 @@ data "aws_iam_policy_document" "github_infra_kubernetes_iam_acesso" {
       test     = "ArnEquals"
       variable = "iam:PolicyARN"
       values   = local.eks_attachable_policy_arns
+    }
+  }
+
+  # Policy ClusterEncryption do modulo EKS: criada, anexada so a role do cluster e removida no destroy. O Deny das
+  # boundaries e das policies -github-* nao a alcanca; a role do cluster segue limitada pela boundary plataforma.
+  statement {
+    sid    = "IamClusterEncryptionPolicy"
+    effect = "Allow"
+    actions = [
+      "iam:CreatePolicy",
+      "iam:DeletePolicy",
+      "iam:CreatePolicyVersion",
+      "iam:DeletePolicyVersion",
+      "iam:TagPolicy",
+      "iam:UntagPolicy",
+      "iam:ListPolicyTags",
+    ]
+    resources = [local.cluster_encryption_policy_arn]
+  }
+
+  statement {
+    sid    = "IamAttachClusterEncryption"
+    effect = "Allow"
+    actions = [
+      "iam:AttachRolePolicy",
+      "iam:DetachRolePolicy",
+    ]
+    resources = [local.eks_cluster_role_arn]
+    condition {
+      test     = "StringEquals"
+      variable = "iam:PermissionsBoundary"
+      values   = [local.boundary_plataforma_arn]
+    }
+    condition {
+      test     = "ArnLike"
+      variable = "iam:PolicyARN"
+      values   = [local.cluster_encryption_policy_arn]
     }
   }
 

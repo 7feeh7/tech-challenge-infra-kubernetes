@@ -27,17 +27,17 @@ module "eks" {
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
-  # Identidade fixa: evita drift quando CI (role OIDC) e apply local (user IAM) divergem.
+  # Administradores declarados (CI e operador): o criador do cluster varia conforme quem executa o apply e geraria drift.
   enable_cluster_creator_admin_permissions = false
 
   kms_key_administrators = [
     local.ci_role_arns.infra_kubernetes,
-    "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/github-actions",
+    var.operador_principal_arn,
   ]
 
   access_entries = {
-    github_actions_bootstrap = {
-      principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/github-actions"
+    operador = {
+      principal_arn = var.operador_principal_arn
       policy_associations = {
         admin = {
           policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
@@ -120,6 +120,9 @@ module "eks" {
       iam_role_name                 = "${local.cluster_name}-node"
       iam_role_use_name_prefix      = false
       iam_role_permissions_boundary = local.permissions_boundary_plataforma_arn
+
+      # Amazon Linux 2 nao tem AMI otimizada para o EKS a partir do 1.34; explicito para nao depender do padrao do modulo.
+      ami_type = "AL2023_x86_64_STANDARD"
 
       tags = local.cluster_autoscaler_asg_tags
     }

@@ -27,7 +27,13 @@ data "aws_iam_policy_document" "github_ci_terraform_state" {
       condition {
         test     = "StringLike"
         variable = "s3:prefix"
-        values   = [local.ci_terraform_state_prefixes[each.key]]
+        # O backend S3 lista o prefixo de workspaces (env:/) em todo init e plan, mesmo sem usar workspaces.
+        # Sem ele o init falha com "Failed to get existing workspaces". Nenhum objeto de state fica sob env:/.
+        values = [
+          local.ci_terraform_state_prefixes[each.key],
+          "env:/",
+          "env:/*",
+        ]
       }
     }
   }
