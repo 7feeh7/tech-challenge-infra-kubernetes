@@ -41,6 +41,14 @@ resource "aws_iam_policy" "boundary_workload" {
         ]
         Resource = "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${local.resource_name_prefix}-execution-*"
       },
+      # Tabela de rate limit da auth-cpf. Statement proprio, so com a operacao que o codigo da Lambda usa e o ARN exato:
+      # o teto de execution-* nao pode crescer para quem nao precisa dele.
+      {
+        Sid      = "DynamoDbAuthCpfRate"
+        Effect   = "Allow"
+        Action   = ["dynamodb:UpdateItem"]
+        Resource = "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${local.resource_name_prefix}-auth-cpf-rate"
+      },
       {
         Sid    = "SecretsLeitura"
         Effect = "Allow"

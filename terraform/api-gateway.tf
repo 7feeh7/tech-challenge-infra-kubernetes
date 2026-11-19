@@ -94,6 +94,29 @@ resource "aws_apigatewayv2_route" "api_options" {
   target    = "integrations/${aws_apigatewayv2_integration.eks_app.id}"
 }
 
+# Billing e Execution: uma integracao por servico, pelo mesmo VPC Link, apontando para o listener do servico.
+# Rotas mais especificas vencem ANY /v1/{proxy+}, que continua levando o restante para o OS.
+resource "aws_apigatewayv2_integration" "servico" {
+  for_each = local.servicos_borda_aditivos
+
+  api_id                 = aws_apigatewayv2_api.main.id
+  integration_type       = "HTTP_PROXY"
+  integration_method     = "ANY"
+  integration_uri        = aws_lb_listener.servico[each.key].arn
+  connection_type        = "VPC_LINK"
+  connection_id          = aws_apigatewayv2_vpc_link.eks.id
+  timeout_milliseconds   = var.api_integration_timeout_ms
+  payload_format_version = "1.0"
+}
+
+resource "aws_apigatewayv2_route" "servico" {
+  for_each = local.rotas_aditivas
+
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = each.key
+  target    = "integrations/${aws_apigatewayv2_integration.servico[each.value].id}"
+}
+
 resource "aws_apigatewayv2_stage" "default" {
   api_id      = aws_apigatewayv2_api.main.id
   name        = "$default"
@@ -225,6 +248,51 @@ resource "aws_lb_listener" "eks" {
 resource "aws_autoscaling_attachment" "eks_nodes" {
   autoscaling_group_name = module.eks.eks_managed_node_groups["default"].node_group_autoscaling_group_names[0]
   lb_target_group_arn    = aws_lb_target_group.eks_nodes.arn
+}
+
+# Billing e Execution no NLB existente: um listener e um target group por servico, sem recriar o NLB (D6.4).
+resource "aws_lb_target_group" "servico" {
+  for_each = local.servicos_borda_aditivos
+
+  name        = "${var.project_name}-${var.environment}-${each.value.sufixo_target_group}"
+  port        = each.value.node_port
+  protocol    = "TCP"
+  vpc_id      = module.vpc.vpc_id
+  target_type = "instance"
+
+  health_check {
+    enabled             = true
+    protocol            = "HTTP"
+    port                = tostring(each.value.node_port)
+    path                = "/health"
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    interval            = 30
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-${each.value.sufixo_target_group}"
+  }
+}
+
+resource "aws_lb_listener" "servico" {
+  for_each = local.servicos_borda_aditivos
+
+  load_balancer_arn = aws_lb.eks_internal.arn
+  port              = each.value.porta_listener
+  protocol          = "TCP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.servico[each.key].arn
+  }
+}
+
+resource "aws_autoscaling_attachment" "servico" {
+  for_each = local.servicos_borda_aditivos
+
+  autoscaling_group_name = local.asg_nos_eks
+  lb_target_group_arn    = aws_lb_target_group.servico[each.key].arn
 }
 
 # =============================================================================

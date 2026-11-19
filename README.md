@@ -41,6 +41,8 @@ flowchart TB
 | S3                                        | Artefatos ZIP das Functions                                        |
 | SSM                                       | Exports consumidos pelos demais repositorios                       |
 
+Mapa de rotas do API Gateway, listeners e NodePorts por servico (OS, Billing, Execution), saida da `auth-cpf` ate o NLB e permissao de rate limit estao em [`docs/rotas-e-rede.md`](docs/rotas-e-rede.md).
+
 Quais pipelines e roles alcancam os segredos criticos (chave privada JWT e segredo master do banco), e por que, estao em [`docs/segredos-rs256.md`](docs/segredos-rs256.md#fronteira-de-confianca).
 
 ## Repositórios relacionados
@@ -103,6 +105,9 @@ Prefixo: `/tech-challenge/producao/infra/`
 | `api_gateway_auth_url`         | consumidores externos, Swagger    |
 | `vpc_link_id`                  | observabilidade / troubleshooting |
 | `eks_nlb_dns_name`             | healthcheck NLB (in-VPC)          |
+| `api_gateway_id`               | troubleshooting / smoke           |
+| `eks_node_group_asg_name`      | troubleshooting                   |
+| `eks_oidc_provider_arn`        | troubleshooting / IRSAs futuras   |
 
 ## GitHub Secrets (Environment `producao`)
 

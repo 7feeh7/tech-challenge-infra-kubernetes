@@ -24,6 +24,7 @@ locals {
   # nao ha curinga: cada ARN e exato.
   infra_stack_ssm_parameter_names = [
     "api_gateway_auth_url",
+    "api_gateway_id",
     "api_gateway_url",
     "auth_rate_limit_table",
     "billing_irsa_role_arn",
@@ -33,7 +34,9 @@ locals {
     "eks_cluster_endpoint",
     "eks_cluster_name",
     "eks_nlb_dns_name",
+    "eks_node_group_asg_name",
     "eks_node_security_group_id",
+    "eks_oidc_provider_arn",
     "execution_irsa_role_arn",
     "github_role_app_arn",
     "github_role_billing_arn",
