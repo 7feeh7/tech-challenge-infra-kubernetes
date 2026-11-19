@@ -15,6 +15,7 @@ Infraestrutura de computação e borda da oficina mecânica: VPC, EKS, ECR, API 
 | Tecnologia                                         | Versão                 |
 | -------------------------------------------------- | ---------------------- |
 | Terraform                                          | >= 1.5                 |
+| Kubernetes (EKS)                                   | 1.37 (nós Amazon Linux 2023) |
 | AWS (VPC, EKS, ECR, API GW, Lambda shell, SNS/SQS) | região us-east-1       |
 | Datadog provider                                   | dashboards + monitors  |
 | GitHub Actions                                     | pr-validation + deploy |
@@ -117,9 +118,21 @@ Prefixo: `/tech-challenge/producao/infra/`
 | `TF_STATE_BUCKET`                             | Backend S3 (ex.: `tech-challenge-terraform-state-7feeh7`) |
 | `TF_STATE_LOCK_TABLE`                         | **`tech-challenge-terraform-lock`** — sem `-state-` no nome |
 | `JWT_SECRET`                                  | Env da Lambda auth                 |
-| `LAMBDA_ARTIFACTS_BUCKET`                     | Nome do bucket S3 de artefatos     |
+| `LAMBDA_ARTIFACTS_BUCKET`                     | Nome do bucket S3 de artefatos; igual ao `lambda_s3_bucket` do bootstrap |
+| `SENDGRID_API_KEY`                            | Chave de API do SendGrid, gravada pelo Terraform no Secrets Manager |
 
 `SONAR_TOKEN` e similares ficam no nivel de repositorio, se aplicavel.
+
+## GitHub Variables (repositório)
+
+Não são segredos. Sem elas o `terraform plan` falha com a mensagem da validação da variável.
+
+| Variable                  | Variável Terraform       | Uso                                                                                      |
+| ------------------------- | ------------------------ | ---------------------------------------------------------------------------------------- |
+| `OPERADOR_PRINCIPAL_ARN`  | `operador_principal_arn` | ARN do usuário ou role IAM do autor: acesso administrador ao EKS e à chave KMS do cluster |
+| `SENDGRID_FROM_EMAIL`     | `sendgrid_from_email`    | Remetente já verificado no SendGrid; o placeholder de exemplo é recusado                  |
+
+Operador, remetente, versão do Kubernetes e permissões da role de CI estão em [`docs/operador-permissoes-e-versao-eks.md`](docs/operador-permissoes-e-versao-eks.md).
 
 ## Branches e pipelines
 

@@ -29,7 +29,17 @@ variable "vpc_cidr" {
 variable "kubernetes_version" {
   description = "Versao do Kubernetes no cluster EKS."
   type        = string
-  default     = "1.31"
+  default     = "1.37"
+}
+
+variable "operador_principal_arn" {
+  description = "ARN do usuario ou role IAM do operador (autor): recebe acesso administrador ao cluster EKS e a chave KMS dele."
+  type        = string
+
+  validation {
+    condition     = can(regex("^arn:aws:iam::[0-9]{12}:(user|role)/[A-Za-z0-9+=,.@_/-]+$", var.operador_principal_arn))
+    error_message = "operador_principal_arn e obrigatorio e deve ser o ARN de um usuario ou role IAM (arn:aws:iam::<conta>:user/<nome> ou :role/<nome>). Em CI, defina a variable OPERADOR_PRINCIPAL_ARN do repositorio no GitHub."
+  }
 }
 
 variable "node_instance_type" {
@@ -154,7 +164,14 @@ variable "sendgrid_api_key" {
 variable "sendgrid_from_email" {
   description = "Remetente verificado no SendGrid."
   type        = string
-  default     = "oficina@seu-dominio.com"
+
+  validation {
+    condition = (
+      can(regex("^[^@[:space:]]+@[^@[:space:]]+[.][^@[:space:]]+$", var.sendgrid_from_email))
+      && !endswith(lower(var.sendgrid_from_email), "@seu-dominio.com")
+    )
+    error_message = "sendgrid_from_email e obrigatorio e deve ser um e-mail valido, diferente do placeholder de exemplo. Em CI, defina a variable SENDGRID_FROM_EMAIL do repositorio no GitHub com o remetente verificado no SendGrid."
+  }
 }
 
 variable "lambda_notificacao_reserved_concurrency" {

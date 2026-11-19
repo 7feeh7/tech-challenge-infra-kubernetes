@@ -81,6 +81,8 @@ jobs:
             -var="environment=${{ env.TF_ENVIRONMENT }}" \
             -var="lambda_s3_bucket=${{ secrets.LAMBDA_ARTIFACTS_BUCKET }}" \
             -var="sendgrid_api_key=${{ secrets.SENDGRID_API_KEY }}" \
+            -var="sendgrid_from_email=${{ vars.SENDGRID_FROM_EMAIL }}" \
+            -var="operador_principal_arn=${{ vars.OPERADOR_PRINCIPAL_ARN }}" \
             -var="datadog_api_key=${{ secrets.DATADOG_API_KEY }}" \
             -var="datadog_app_key=${{ secrets.DATADOG_APP_KEY }}" \
             -out=tfplan 2>&1 | tee plan-output.txt
@@ -91,14 +93,6 @@ jobs:
             exit "$PLAN_EXIT"
           fi
         working-directory: terraform
-
-      - name: Upload plan artifact
-        if: github.event_name == 'push' || github.event.inputs.action == 'apply'
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-plan-${{ github.sha }}
-          path: terraform/tfplan
-          retention-days: 30
 
       - name: Terraform Apply
         if: github.event_name == 'push' || github.event.inputs.action == 'apply'
@@ -112,6 +106,8 @@ jobs:
             -var="environment=${{ env.TF_ENVIRONMENT }}" \
             -var="lambda_s3_bucket=${{ secrets.LAMBDA_ARTIFACTS_BUCKET }}" \
             -var="sendgrid_api_key=${{ secrets.SENDGRID_API_KEY }}" \
+            -var="sendgrid_from_email=${{ vars.SENDGRID_FROM_EMAIL }}" \
+            -var="operador_principal_arn=${{ vars.OPERADOR_PRINCIPAL_ARN }}" \
             -var="datadog_api_key=${{ secrets.DATADOG_API_KEY }}" \
             -var="datadog_app_key=${{ secrets.DATADOG_APP_KEY }}"
         working-directory: terraform
