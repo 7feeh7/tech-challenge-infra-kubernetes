@@ -258,7 +258,8 @@ data "aws_iam_policy_document" "github_infra_kubernetes_servicos" {
       "sns:SetSubscriptionAttributes",
       "sns:Unsubscribe",
     ]
-    resources = local.infra_stack_sns_subscription_arns
+    # A confirmacao da assinatura no create avalia GetSubscriptionAttributes contra o ARN do topico.
+    resources = concat(local.infra_stack_sns_arns, local.infra_stack_sns_subscription_arns)
   }
 
   statement {
@@ -340,6 +341,10 @@ data "aws_iam_policy_document" "github_infra_kubernetes_servicos" {
     actions = [
       "lambda:GetEventSourceMapping",
       "lambda:DeleteEventSourceMapping",
+      # O provider aplica as default_tags no create do mapping; a chave lambda:FunctionArn nao vem nessas acoes.
+      "lambda:TagResource",
+      "lambda:UntagResource",
+      "lambda:ListTags",
     ]
     resources = [local.infra_stack_event_source_mapping_arn]
   }
@@ -466,7 +471,12 @@ data "aws_iam_policy_document" "github_infra_kubernetes_iam_roles" {
       "iam:ListAttachedRolePolicies",
       "iam:ListInstanceProfilesForRole",
     ]
-    resources = local.stack_iam_role_arns
+    # O modulo EKS le a propria role do CI (data aws_iam_session_context) em todo plan; sem isso o plan falha com 403.
+    # O CreateNodegroup confere com iam:GetRole se a service-linked role do node group ja existe.
+    resources = concat(local.stack_iam_role_arns, [
+      aws_iam_role.github["infra_kubernetes"].arn,
+      "arn:aws:iam::${local.account_id}:role/aws-service-role/eks-nodegroup.amazonaws.com/AWSServiceRoleForAmazonEKSNodegroup",
+    ])
   }
 
   statement {

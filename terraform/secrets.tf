@@ -31,7 +31,7 @@ resource "aws_secretsmanager_secret" "jwt_private" {
     Name         = "${var.project_name}-${var.environment}-jwt-private"
     Finalidade   = "jwt-rs256-private"
     Algoritmo    = "RS256"
-    Consumidores = "oficina,auth-cpf"
+    Consumidores = "oficina auth-cpf"
   }
 }
 
@@ -43,7 +43,7 @@ resource "aws_secretsmanager_secret" "jwt_public" {
     Name         = "${var.project_name}-${var.environment}-jwt-public"
     Finalidade   = "jwt-rs256-public"
     Algoritmo    = "RS256"
-    Consumidores = "oficina,billing,execution"
+    Consumidores = "oficina billing execution"
   }
 }
 
@@ -54,7 +54,7 @@ resource "aws_secretsmanager_secret" "token_billing_os" {
   tags = {
     Name         = "${var.project_name}-${var.environment}-token-billing-os"
     Relacao      = "billing-os"
-    Consumidores = "billing,oficina"
+    Consumidores = "billing oficina"
   }
 }
 
@@ -65,7 +65,7 @@ resource "aws_secretsmanager_secret" "token_execution_os" {
   tags = {
     Name         = "${var.project_name}-${var.environment}-token-execution-os"
     Relacao      = "execution-os"
-    Consumidores = "execution,oficina"
+    Consumidores = "execution oficina"
   }
 }
 
@@ -76,7 +76,7 @@ resource "aws_secretsmanager_secret" "token_auth_cpf_os" {
   tags = {
     Name         = "${var.project_name}-${var.environment}-token-auth-cpf-os"
     Relacao      = "auth-cpf-os"
-    Consumidores = "auth-cpf,oficina"
+    Consumidores = "auth-cpf oficina"
   }
 }
 
