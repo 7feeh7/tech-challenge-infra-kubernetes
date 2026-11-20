@@ -466,7 +466,8 @@ data "aws_iam_policy_document" "github_infra_kubernetes_iam_roles" {
       "iam:ListAttachedRolePolicies",
       "iam:ListInstanceProfilesForRole",
     ]
-    resources = local.stack_iam_role_arns
+    # O modulo EKS le a propria role do CI (data aws_iam_session_context) em todo plan; sem isso o plan falha com 403.
+    resources = concat(local.stack_iam_role_arns, [aws_iam_role.github["infra_kubernetes"].arn])
   }
 
   statement {
