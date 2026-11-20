@@ -550,6 +550,13 @@ resource "aws_iam_role_policy" "github_infra_database_ops" {
         ]
       },
       {
+        # O provider le a instancia por filtro de dbi-resource-id, avaliado contra db:*; a acao e so leitura.
+        Sid      = "RdsDescribeInstancias"
+        Effect   = "Allow"
+        Action   = ["rds:DescribeDBInstances"]
+        Resource = "arn:aws:rds:${var.aws_region}:${local.account_id}:db:*"
+      },
+      {
         Sid    = "RdsSubnetGroup"
         Effect = "Allow"
         Action = [
