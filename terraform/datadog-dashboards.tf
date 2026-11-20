@@ -1,3 +1,16 @@
+locals {
+  # Mesma lista e ordem de STATUS_COM_DURACAO no OS (os-metrics.service.ts); a metrica de duracao so e emitida na saida do status.
+  status_com_duracao = [
+    "EM_DIAGNOSTICO",
+    "AGUARDANDO_APROVACAO",
+    "AGUARDANDO_PAGAMENTO",
+    "AGUARDANDO_EXECUCAO",
+    "EM_EXECUCAO",
+    "EM_CANCELAMENTO",
+    "FINALIZADA",
+  ]
+}
+
 resource "datadog_dashboard" "tecnico" {
   count = var.datadog_app_key != "" ? 1 : 0
 
@@ -118,7 +131,7 @@ resource "datadog_dashboard" "negocio" {
   count = var.datadog_app_key != "" ? 1 : 0
 
   title       = "Tech Challenge - Ordens de Servico"
-  description = "Volume diario de OS e tempo medio por Diagnostico, Execucao e Finalizacao."
+  description = "Volume diario de OS e tempo medio em cada status com duracao."
   layout_type = "ordered"
 
   template_variable {
@@ -143,29 +156,15 @@ resource "datadog_dashboard" "negocio" {
     }
   }
 
-  widget {
-    query_value_definition {
-      title = "Tempo medio EM_DIAGNOSTICO (s)"
-      request {
-        q = "avg:oficina.ordem_servico.tempo_por_status{$env,status:EM_DIAGNOSTICO}"
-      }
-    }
-  }
+  dynamic "widget" {
+    for_each = local.status_com_duracao
 
-  widget {
-    query_value_definition {
-      title = "Tempo medio EM_EXECUCAO (s)"
-      request {
-        q = "avg:oficina.ordem_servico.tempo_por_status{$env,status:EM_EXECUCAO}"
-      }
-    }
-  }
-
-  widget {
-    query_value_definition {
-      title = "Tempo medio FINALIZADA (s)"
-      request {
-        q = "avg:oficina.ordem_servico.tempo_por_status{$env,status:FINALIZADA}"
+    content {
+      query_value_definition {
+        title = "Tempo medio ${widget.value} (s)"
+        request {
+          q = "avg:oficina.ordem_servico.tempo_por_status{$env,status:${widget.value}}"
+        }
       }
     }
   }
@@ -195,7 +194,7 @@ resource "datadog_dashboard" "integracoes" {
   count = var.datadog_app_key != "" ? 1 : 0
 
   title       = "Tech Challenge - Integracoes"
-  description = "Erros e latencia de PostgreSQL, SNS/SQS, SendGrid, Secrets Manager e Functions."
+  description = "Erros e latencia de PostgreSQL, SNS/SQS, Resend, Secrets Manager e Functions."
   layout_type = "ordered"
 
   template_variable {

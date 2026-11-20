@@ -22,8 +22,9 @@ resource "aws_lambda_function" "auth_cpf" {
 
   environment {
     variables = {
-      DB_SECRET_ARN           = var.db_secret_arn
-      JWT_SECRET_ARN          = aws_secretsmanager_secret.jwt.arn
+      JWT_SECRET_ARN          = aws_secretsmanager_secret.jwt_private.arn
+      AUTH_CPF_OS_TOKEN_ARN   = aws_secretsmanager_secret.token_auth_cpf_os.arn
+      OS_SERVICE_BASE_URL     = "http://${aws_lb.eks_internal.dns_name}:${local.servicos_borda.os.porta_listener}"
       JWT_ISSUER              = var.jwt_issuer
       JWT_AUDIENCE            = var.jwt_audience
       AUTH_RATE_LIMIT_TABLE   = aws_dynamodb_table.auth_cpf_rate_limit.name
@@ -65,9 +66,9 @@ resource "aws_lambda_function" "notificacao" {
 
   environment {
     variables = {
-      NODE_ENV            = var.environment
-      SENDGRID_SECRET_ARN = aws_secretsmanager_secret.sendgrid_api_key.arn
-      SENDGRID_FROM_EMAIL = var.sendgrid_from_email
+      NODE_ENV          = var.environment
+      RESEND_SECRET_ARN = aws_secretsmanager_secret.resend_api_key.arn
+      RESEND_FROM_EMAIL = var.resend_from_email
     }
   }
 

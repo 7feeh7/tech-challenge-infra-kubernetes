@@ -38,6 +38,26 @@ output "ssm_prefix" {
   value       = local.ssm_prefix
 }
 
+output "github_ci_role_arns" {
+  description = "ARNs das roles de CI (provisionadas no root bootstrap; convencao de nome)."
+  value       = local.ci_role_arns
+}
+
+output "irsa_role_arns" {
+  description = "ARNs das IRSAs de runtime por servico."
+  value = {
+    os_service = aws_iam_role.os_service_irsa.arn
+    billing    = aws_iam_role.billing_irsa.arn
+    execution  = aws_iam_role.execution_irsa.arn
+    db_admin   = aws_iam_role.db_admin_job_irsa.arn
+  }
+}
+
+output "kubernetes_namespaces" {
+  description = "Namespaces de workload gerenciados pelo stack principal."
+  value       = ["oficina", "billing", "execution", "administracao"]
+}
+
 output "kubeconfig_command" {
   description = "Comando para configurar kubectl."
   value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.eks.cluster_name}"
@@ -68,6 +88,11 @@ output "eks_nlb_dns_name" {
   value       = aws_lb.eks_internal.dns_name
 }
 
+output "servicos_borda" {
+  description = "Porta do listener do NLB, NodePort e rotas do API Gateway por servico."
+  value       = local.servicos_borda
+}
+
 output "datadog_dashboard_tecnico_url" {
   description = "URL do dashboard tecnico Datadog."
   value = length(datadog_dashboard.tecnico) > 0 ? nonsensitive(
@@ -86,5 +111,12 @@ output "datadog_dashboard_integracoes_url" {
   description = "URL do dashboard de integracoes Datadog."
   value = length(datadog_dashboard.integracoes) > 0 ? nonsensitive(
     "https://app.${var.datadog_site}/dashboard/${datadog_dashboard.integracoes[0].id}"
+  ) : null
+}
+
+output "datadog_dashboard_saga_os_url" {
+  description = "URL do dashboard Saga da OS Datadog."
+  value = length(datadog_dashboard.saga_os) > 0 ? nonsensitive(
+    "https://app.${var.datadog_site}/dashboard/${datadog_dashboard.saga_os[0].id}"
   ) : null
 }

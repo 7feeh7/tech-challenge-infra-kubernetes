@@ -1,0 +1,6 @@
+aws_region   = "us-east-1"
+environment  = "producao"
+project_name = "tech-challenge"
+
+# Bucket de artefatos Lambda — mesmo nome usado no stack principal.
+lambda_s3_bucket = "tech-challenge-lambda-artifacts-producao"

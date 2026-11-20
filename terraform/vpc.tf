@@ -1,9 +1,13 @@
 data "aws_availability_zones" "available" {
-  state = "available"
+  # CKV_AWS_394: conjunto de AZs fixo (2 nós, D6.7); não expande se a AWS criar zona nova.
+  filter {
+    name   = "zone-name"
+    values = ["${var.aws_region}a", "${var.aws_region}b"]
+  }
 }
 
 locals {
-  azs = slice(data.aws_availability_zones.available.names, 0, 2)
+  azs = data.aws_availability_zones.available.names
 }
 
 # Flow Logs desligado por custo (ingestao CloudWatch) em ambiente academico.

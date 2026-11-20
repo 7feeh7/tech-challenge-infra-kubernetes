@@ -32,8 +32,9 @@ data "aws_iam_policy_document" "cluster_autoscaler_assume_role" {
 }
 
 resource "aws_iam_role" "cluster_autoscaler_irsa" {
-  name               = "${var.project_name}-${var.environment}-cluster-autoscaler"
-  assume_role_policy = data.aws_iam_policy_document.cluster_autoscaler_assume_role.json
+  name                 = "${var.project_name}-${var.environment}-cluster-autoscaler"
+  assume_role_policy   = data.aws_iam_policy_document.cluster_autoscaler_assume_role.json
+  permissions_boundary = local.permissions_boundary_plataforma_arn
 }
 
 # Policy oficial do Cluster Autoscaler AWS: wildcards em describe e scale com
@@ -79,12 +80,14 @@ resource "aws_iam_role_policy" "cluster_autoscaler" {
   policy = data.aws_iam_policy_document.cluster_autoscaler.json
 }
 
+# O Cluster Autoscaler deve ter a mesma minor do Kubernetes. A imagem padrao segue o appVersion do chart
+# (9.60.0 = 1.37.0): ao trocar kubernetes_version, troque o chart por um cujo appVersion case com a nova minor.
 resource "helm_release" "cluster_autoscaler" {
   name       = "cluster-autoscaler"
   repository = "https://kubernetes.github.io/autoscaler"
   chart      = "cluster-autoscaler"
   namespace  = "kube-system"
-  version    = "9.37.0"
+  version    = "9.60.0"
 
   set {
     name  = "autoDiscovery.clusterName"

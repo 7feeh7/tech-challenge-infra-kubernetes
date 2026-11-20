@@ -15,6 +15,7 @@ Infraestrutura de computação e borda da oficina mecânica: VPC, EKS, ECR, API 
 | Tecnologia                                         | Versão                 |
 | -------------------------------------------------- | ---------------------- |
 | Terraform                                          | >= 1.5                 |
+| Kubernetes (EKS)                                   | 1.37 (nós Amazon Linux 2023) |
 | AWS (VPC, EKS, ECR, API GW, Lambda shell, SNS/SQS) | região us-east-1       |
 | Datadog provider                                   | dashboards + monitors  |
 | GitHub Actions                                     | pr-validation + deploy |
@@ -41,6 +42,10 @@ flowchart TB
 | S3                                        | Artefatos ZIP das Functions                                        |
 | SSM                                       | Exports consumidos pelos demais repositorios                       |
 
+Mapa de rotas do API Gateway, listeners e NodePorts por servico (OS, Billing, Execution), saida da `auth-cpf` ate o NLB e permissao de rate limit estao em [`docs/rotas-e-rede.md`](docs/rotas-e-rede.md).
+
+Quais pipelines e roles alcancam os segredos criticos (chave privada JWT e segredo master do banco), e por que, estao em [`docs/segredos-rs256.md`](docs/segredos-rs256.md#fronteira-de-confianca).
+
 ## Repositórios relacionados
 
 | Repositório                                | URL                                                       | Integração                              |
@@ -64,7 +69,7 @@ flowchart TB
 | `api_gateway_url`         | URL pública da solução         |
 | `eks_cluster_name`        | kubectl / CI da aplicação      |
 | `ecr_repository_url`      | Push de imagem Docker          |
-| `datadog_dashboard_*_url` | Dashboards (outputs Terraform) |
+| `datadog_dashboard_*_url` | Dashboards, inclusive Saga da OS (outputs Terraform) |
 
 ## Estrutura
 
@@ -101,6 +106,9 @@ Prefixo: `/tech-challenge/producao/infra/`
 | `api_gateway_auth_url`         | consumidores externos, Swagger    |
 | `vpc_link_id`                  | observabilidade / troubleshooting |
 | `eks_nlb_dns_name`             | healthcheck NLB (in-VPC)          |
+| `api_gateway_id`               | troubleshooting / smoke           |
+| `eks_node_group_asg_name`      | troubleshooting                   |
+| `eks_oidc_provider_arn`        | troubleshooting / IRSAs futuras   |
 
 ## GitHub Secrets (Environment `producao`)
 
@@ -110,10 +118,21 @@ Prefixo: `/tech-challenge/producao/infra/`
 | `TF_STATE_BUCKET`                             | Backend S3 (ex.: `tech-challenge-terraform-state-7feeh7`) |
 | `TF_STATE_LOCK_TABLE`                         | **`tech-challenge-terraform-lock`** — sem `-state-` no nome |
 | `JWT_SECRET`                                  | Env da Lambda auth                 |
-| `DB_SECRET_ARN`                               | Opcional; preenchido apos database |
-| `LAMBDA_ARTIFACTS_BUCKET`                     | Nome do bucket S3 de artefatos     |
+| `LAMBDA_ARTIFACTS_BUCKET`                     | Nome do bucket S3 de artefatos; igual ao `lambda_s3_bucket` do bootstrap |
+| `RESEND_API_KEY`                            | Chave de API do Resend, gravada pelo Terraform no Secrets Manager |
 
 `SONAR_TOKEN` e similares ficam no nivel de repositorio, se aplicavel.
+
+## GitHub Variables (repositório)
+
+Não são segredos. Sem elas o `terraform plan` falha com a mensagem da validação da variável.
+
+| Variable                  | Variável Terraform       | Uso                                                                                      |
+| ------------------------- | ------------------------ | ---------------------------------------------------------------------------------------- |
+| `OPERADOR_PRINCIPAL_ARN`  | `operador_principal_arn` | ARN do usuário ou role IAM do autor: acesso administrador ao EKS e à chave KMS do cluster |
+| `RESEND_FROM_EMAIL`       | `resend_from_email`      | Remetente de domínio verificado no Resend; o placeholder de exemplo é recusado           |
+
+Operador, remetente, versão do Kubernetes e permissões da role de CI estão em [`docs/operador-permissoes-e-versao-eks.md`](docs/operador-permissoes-e-versao-eks.md).
 
 ## Branches e pipelines
 
@@ -130,6 +149,10 @@ State S3 key: `tech-challenge-infra-kubernetes/producao/terraform.tfstate`
 1. Reverta o commit no GitHub e faca merge na branch alvo.
 2. O workflow `deploy.yml` aplicara o state anterior via Terraform.
 3. Para destroy controlado, use `workflow_dispatch` com action `destroy`.
+
+## Observabilidade
+
+Monitores, metricas de log, pipeline de logs e dashboards Datadog (inclusive Saga da OS), com limites, limitacoes e roteiro de verificacao da implantacao em [`docs/observabilidade.md`](docs/observabilidade.md).
 
 ## Custo e teardown
 

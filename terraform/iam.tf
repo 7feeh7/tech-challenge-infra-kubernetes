@@ -1,5 +1,6 @@
 resource "aws_iam_role" "lambda_execution" {
-  name = "${var.project_name}-${var.environment}-lambda-role"
+  name                 = "${var.project_name}-${var.environment}-lambda-role"
+  permissions_boundary = local.permissions_boundary_workload_arn
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -32,11 +33,9 @@ resource "aws_iam_role_policy_attachment" "lambda_xray" {
 
 data "aws_caller_identity" "current" {}
 
-# Wildcard apenas enquanto db_secret_arn nao existe (secret criado pelo repo
-# infra-database depois). Restrito a conta atual e ao prefixo do projeto.
-#tfsec:ignore:aws-iam-no-policy-wildcards
 resource "aws_iam_role" "lambda_notificacao_execution" {
-  name = "${var.project_name}-${var.environment}-lambda-notificacao-role"
+  name                 = "${var.project_name}-${var.environment}-lambda-notificacao-role"
+  permissions_boundary = local.permissions_boundary_workload_arn
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -86,8 +85,8 @@ resource "aws_iam_role_policy" "lambda_notificacao_sqs" {
   })
 }
 
-resource "aws_iam_role_policy" "lambda_notificacao_sendgrid_secret" {
-  name = "${var.project_name}-${var.environment}-lambda-notificacao-sendgrid"
+resource "aws_iam_role_policy" "lambda_notificacao_resend_secret" {
+  name = "${var.project_name}-${var.environment}-lambda-notificacao-resend"
   role = aws_iam_role.lambda_notificacao_execution.id
 
   policy = jsonencode({
@@ -99,7 +98,7 @@ resource "aws_iam_role_policy" "lambda_notificacao_sendgrid_secret" {
           "secretsmanager:GetSecretValue",
           "secretsmanager:DescribeSecret"
         ]
-        Resource = [aws_secretsmanager_secret.sendgrid_api_key.arn]
+        Resource = [aws_secretsmanager_secret.resend_api_key.arn]
       }
     ]
   })
@@ -118,10 +117,10 @@ resource "aws_iam_role_policy" "lambda_secrets" {
           "secretsmanager:GetSecretValue",
           "secretsmanager:DescribeSecret"
         ]
-        Resource = compact([
-          var.db_secret_arn != "" ? var.db_secret_arn : "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:${var.project_name}/*",
-          aws_secretsmanager_secret.jwt.arn,
-        ])
+        Resource = [
+          aws_secretsmanager_secret.jwt_private.arn,
+          aws_secretsmanager_secret.token_auth_cpf_os.arn,
+        ]
       }
     ]
   })

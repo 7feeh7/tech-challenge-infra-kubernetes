@@ -37,10 +37,9 @@ resource "aws_iam_role_policy" "lambda_auth_rate_limit" {
     Statement = [
       {
         Effect = "Allow"
-        Action = [
-          "dynamodb:UpdateItem",
-          "dynamodb:GetItem",
-        ]
+        # cpf-rate-limit.service.ts do tech-challenge-serverless so usa UpdateItem (com ConditionExpression, sem
+        # ReturnValues). A tabela usa chave gerenciada pela AWS, sem CMK, entao a role nao precisa de permissao KMS.
+        Action   = ["dynamodb:UpdateItem"]
         Resource = aws_dynamodb_table.auth_cpf_rate_limit.arn
       }
     ]

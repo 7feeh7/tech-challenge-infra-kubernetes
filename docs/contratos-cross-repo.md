@@ -41,9 +41,20 @@ Prefixo: `/tech-challenge/producao/infra/`
 | `lambda_artifacts_bucket` | serverless CI |
 | `sns_notificacao_topic_arn` | tech-challenge CI |
 | `api_notificacao_irsa_role_arn` | tech-challenge CI |
-| `sendgrid_secret_arn` | troubleshooting |
+| `jwt_secret_arn` | OS CI (chave privada RS256), Lambda `auth-cpf` |
+| `jwt_public_secret_arn` | Billing, Execution e OS CI |
+| `token_billing_os_secret_arn` | Billing e OS CI |
+| `token_execution_os_secret_arn` | Execution e OS CI |
+| `token_auth_cpf_os_secret_arn` | Lambda `auth-cpf` e OS CI |
+| `api_gateway_id` | troubleshooting e smoke da implantacao (E07) |
+| `eks_nlb_dns_name` | Lambda `auth-cpf` (`OS_SERVICE_BASE_URL`, montada no proprio stack), troubleshooting |
+| `eks_node_group_asg_name` | troubleshooting (E07) |
+| `eks_oidc_provider_arn` | troubleshooting e futuras IRSAs (E07) |
+| `resend_secret_arn` | troubleshooting |
 | `sqs_notificacao_queue_url` | troubleshooting |
 | `sqs_notificacao_dlq_url` | troubleshooting DLQ |
+
+As filas `os-in`, `billing-in`, `execution-in` e as DLQs nao sao exports deste repositorio: cada servico publica os proprios parametros (`os_in_queue_url`, `billing_in_queue_url`, `execution_in_queue_url` e DLQs) em `/tech-challenge/producao/infra/`, pela convencao de nome `<projeto>-<ambiente>-<servico>-in`. Mapa de rotas, portas e a lista completa em [rotas-e-rede.md](rotas-e-rede.md).
 
 ## Exports — infra-database
 
@@ -51,7 +62,9 @@ Prefixo: `/tech-challenge/producao/database/`
 
 | Parametro | Consumidor |
 | --- | --- |
-| `db_secret_arn` | Lambda auth, tech-challenge CI |
+| `db_secret_arn` | tech-challenge CI (usuario `oficina`); a Lambda `auth-cpf` nao consome segredo PostgreSQL |
+| `billing_db_secret_arn` | tech-challenge-billing CI (usuario `billing`) |
+| `master_db_secret_arn` | so o workflow do Job administrativo (`db-admin-job.yml` do infra-database); nenhum microsservico, Lambda ou CI de aplicacao |
 | `rds_endpoint` | troubleshooting |
 
 ## State Terraform
