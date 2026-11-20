@@ -23,18 +23,10 @@ data "aws_iam_policy_document" "github_ci_terraform_state" {
         "s3:ListBucket",
         "s3:GetBucketLocation",
       ]
+      # Sem condicao de s3:prefix: no primeiro init o state ainda nao existe, e o HeadObject so recebe 404
+      # (state vazio) quando a role tem ListBucket avaliavel sem prefixo; com a condicao o S3 devolve 403
+      # e o init aborta. Listar expoe apenas nomes de chaves; leitura e escrita continuam restritas ao prefixo.
       resources = [local.terraform_state_bucket_arn]
-      condition {
-        test     = "StringLike"
-        variable = "s3:prefix"
-        # O backend S3 lista o prefixo de workspaces (env:/) em todo init e plan, mesmo sem usar workspaces.
-        # Sem ele o init falha com "Failed to get existing workspaces". Nenhum objeto de state fica sob env:/.
-        values = [
-          local.ci_terraform_state_prefixes[each.key],
-          "env:/",
-          "env:/*",
-        ]
-      }
     }
   }
 
