@@ -14,6 +14,8 @@ module "eks" {
   iam_role_name                 = local.cluster_name
   iam_role_use_name_prefix      = false
   iam_role_permissions_boundary = local.permissions_boundary_plataforma_arn
+  # Sem EKS Auto Mode: evita a policy extra <role do cluster> que a role do CI nao pode criar.
+  enable_auto_mode_custom_tags = false
 
   cluster_endpoint_public_access = true
 
